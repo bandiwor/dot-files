@@ -1,0 +1,15 @@
+{
+  "arrowType": "caret",
+  "byteThresholdActive": 5000,
+  "fontSizeModifier": 0.75,
+  "iconSizeModifier": 0.6,
+  "showNumbers": true,
+  "spacingInbetween": -4,
+  "useCustomColors": false,
+  "useCustomFont": false,
+  "customFontBold": false,
+  "customFontItalic": false,
+  "horizontalLayout": true,
+  "contentMargin": 11,
+  "customFontFamily": "DejaVu Sans Condensed"
+}

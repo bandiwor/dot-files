@@ -177,18 +177,6 @@
                     "unreadBadgeColor": "primary"
                 },
                 {
-                    "defaultSettings": {
-                        "enableCross": true,
-                        "enableWindowsSelection": true,
-                        "keepSourceScreenshot": false,
-                        "recordingNotifications": true,
-                        "recordingSavePath": "~/Videos",
-                        "savePath": "~/Pictures/Screenshots",
-                        "screenshotEditor": "swappy"
-                    },
-                    "id": "plugin:screen-shot-and-record"
-                },
-                {
                     "applyToAllMonitors": false,
                     "displayMode": "onhover",
                     "iconColor": "none",
@@ -540,7 +528,7 @@
         "bluetoothRssiPollIntervalMs": 60000,
         "bluetoothRssiPollingEnabled": false,
         "disableDiscoverability": false,
-        "networkPanelView": "ethernet",
+        "networkPanelView": "wifi",
         "wifiDetailsViewMode": "grid"
     },
     "nightLight": {

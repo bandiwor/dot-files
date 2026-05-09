@@ -1,0 +1,5 @@
+[mgr]
+append_keymap = [
+    { on = ["g", "p"], run = "cd --str ~/Pictures", desc = "Goto ~/Pictures"  },
+    { on = ["g", "m"], run = "cd --str /run/media/$USER/", desc = "Goto /run/media/$USER/"},
+]

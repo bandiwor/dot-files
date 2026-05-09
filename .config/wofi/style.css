@@ -1,0 +1,55 @@
+window {
+    margin: 0px;
+    border: 2px solid #1F2932; /* Наш bg_light */
+    background-color: #151C22; /* Наш bg_dark */
+    border-radius: 12px;
+    font-family: "JetBrainsMono Nerd Font", sans-serif;
+    font-size: 16px;
+}
+
+#input {
+    margin: 8px;
+    padding: 8px;
+    background-color: #1F2932; /* Наш bg_light */
+    color: #D3D9DE;            /* Наш fg_main */
+    border: 2px solid transparent; 
+    border-radius: 8px;
+    font-size: 20px;
+    font-style: italic;
+    outline: none;
+}
+
+#input:focus {
+    border: 2px solid #7FCCCC; /* Мятный акцент (Green) при наборе */
+    box-shadow: none;
+}
+
+#inner-box {
+    margin: 5px;
+    background-color: transparent;
+}
+
+#outer-box {
+    margin: 5px;
+    padding: 10px;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+}
+
+#text {
+    margin: 5px;
+    color: #D3D9DE; /* Наш fg_main */
+}
+
+#entry:selected {
+    background-color: #7F9FCC; /* Глубокий синий (Blue) при выборе */
+    border-radius: 8px;
+}
+
+#text:selected {
+    color: #151C22;            /* Темный текст на светлом фоне выбора */
+    font-weight: bold;
+}

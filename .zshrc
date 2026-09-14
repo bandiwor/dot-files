@@ -10,11 +10,17 @@ setopt APPEND_HISTORY      # Добавлять в историю, а не пе�
 setopt SHARE_HISTORY       # Общая история между открытыми окнами kitty
 setopt HIST_IGNORE_DUPS    # Не записывать дубликаты подряд
 
-
 fpath=(/usr/share/zsh/site-functions $fpath)
 
 autoload -Uz compinit
 compinit
+
+zmodload zsh/complist
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{blue}-- %d --%f'
 
 # --- 2. Переменные окружения ---
 export TERMINAL=kitty
@@ -31,6 +37,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 # --- 3. Алиасы ---
 alias grep='grep --color=auto'
 alias v=$EDITOR
+alias cd='z'
 
 # Pacman
 alias pacS='sudo pacman -S'
@@ -97,8 +104,6 @@ if [[ -f /usr/share/fzf/completion.zsh ]]; then
     source /usr/share/fzf/completion.zsh
 fi
 
-eval "$(starship init zsh)"
-
 # pnpm
 export PNPM_HOME="/home/kira/.local/share/pnpm"
 case ":$PATH:" in
@@ -107,4 +112,4 @@ case ":$PATH:" in
 esac
 # pnpm end
 
-alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+alias config='/usr/bin/git --git-dir=$HOME/.dot-files/ --work-tree=$HOME'

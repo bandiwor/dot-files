@@ -24,6 +24,18 @@ return {
                     c = { "clang-format" },
                     rust = { "rustfmt" },
                     python = { "isort", "black" },
+
+                    -- Заменили prettier на biome для JS/TS стека
+                    javascript = { "biome" },
+                    typescript = { "biome" },
+                    javascriptreact = { "biome" },
+                    typescriptreact = { "biome" },
+                    json = { "biome" },
+
+                    -- Для HTML и CSS пока можно оставить prettier,
+                    -- или использовать другие инструменты, если npm совсем исключен
+                    css = { "prettier" },
+                    html = { "prettier" },
                 },
                 format_on_save = {
                     lsp_fallback = true,
@@ -70,10 +82,6 @@ return {
             require("nvim-autopairs").setup({
                 check_ts = true, -- Интеграция с treesitter
             })
-            -- Интеграция с cmp (чтобы после выбора функции ставились скобки ())
-            local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-            local cmp = require('cmp')
-            cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
         end
     }
 }

@@ -51,24 +51,22 @@ return {
     },
     {
         "nvim-treesitter/nvim-treesitter",
-        branch = "master", -- Явно указываем ветку, чтобы Lazy не запутался
+        branch = "main",
+        build = ":TSUpdate",
         config = function()
-            -- pcall (protected call) перехватывает ошибку.
-            -- Если плагина нет, Neovim не умрет, а пойдет загружаться дальше.
-            local ok, configs = pcall(require, "nvim-treesitter.configs")
-
-            if not ok then
-                -- Выдаст аккуратное желтое уведомление вместо красного экрана смерти
-                vim.notify("Treesitter скачивается или недоступен. Запусти :Lazy sync", vim.log.levels.WARN)
-                return
-            end
-
-            configs.setup({
-                ensure_installed = { "cpp", "bash", "markdown", "toml", "python", "rust", "wgsl", "cmake" },
-                highlight = { enable = true },
-                indent = { enable = true, disable = { "c", "cpp" } },
+            require("nvim-treesitter").install({
+                "c", "cpp", "lua", "bash", "markdown", "markdown_inline",
+                "toml", "python", "rust", "wgsl", "cmake", "html", "css"
             })
-        end
+
+            vim.api.nvim_create_autocmd("FileType", {
+                group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
+                callback = function(event)
+                    pcall(vim.treesitter.start, event.buf)
+                    vim.bo[event.buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
+                end,
+            })
+        end,
     },
     {
         "nvim-tree/nvim-tree.lua",

@@ -8,7 +8,7 @@ map('n', '<leader>f', ':NvimTreeFocus<CR>', { desc = "Focus File Explorer" })
 
 map('n', '<Tab>', ':BufferLineCycleNext<CR>', { desc = 'Go to next tab' })
 map('n', '<S-Tab>', ':BufferLineCyclePrev<CR>', { desc = 'Go to prev tab' })
-map('n', '<leader>x', ':bdelete<CR>', { desc = 'Close current tab' })
+map('n', '<leader>x', ':bp | bd #<CR>', { desc = 'Close current tab' })
 
 map('n', '<Up>', '<nop>')
 map('n', '<Down>', '<nop>')

@@ -1,0 +1,41 @@
+* {
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+/* Внешний контур плашки */
+.modules-right {
+    background-color: #0a0a0a;
+    border: 1px solid #333333;
+    margin-top: 12px;
+    margin-right: 12px;
+    padding: 2px 4px;
+}
+
+/* Модули с увеличенным пространством по бокам */
+#clock,
+#battery {
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono";
+    font-size: 11px;
+    font-weight: 500;
+    color: #d4d8dc;
+    padding: 2px 14px;
+}
+
+/* Тонкий разделитель */
+#clock {
+    border-right: 1px solid #2a2a2a;
+}
+
+/* Критический заряд */
+#battery.critical {
+    color: #0a0a0a;
+    background-color: #d4d8dc;
+}

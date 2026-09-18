@@ -1,9 +1,39 @@
-// ────────────── Output Configuration ──────────────
-// You can run `niri msg outputs` to get the correct name for your displays.
-// You will have to remove "/-" and edit it before it takes effect.
-// https://github.com/YaLTeR/niri/wiki/Configuration:-Outputs
+// ─── ОСНОВНОЙ ЭКРАН (Xiaomi 24", 165 Гц, слева) ───
+output "HDMI-A-1" {
+    // Точный аппаратный тайминг EDID для честных 165 кадров/с
+    mode "1920x1080@165.002"
+    scale 1.0
 
-/- output "DP-1" {
-    mode "2560x1440@359.979" // Set resolution and refresh rate
-    scale 1 // No scaling (use 2 for HiDPI)
+    // Начало глобальной системы координат
+    position x=0 y=0
+
+    // Передавать системный фокус на этот монитор при старте сессии
+    focus-at-startup
+
+    // Цвет подложки между рабочими пространствами и в Mod+O overview
+    backdrop-color "#000000"
+
+    // Отключение триггеров овервью по углам для чистого перемещения курсора
+    hot-corners {
+        off
+    }
+
+    // VRR (Adaptive Sync) строго отключен: предотвращает срыв строчной
+    // развертки и полосы в нижней части матрицы по шине HDMI на AMD Cezanne
+}
+
+// ─── ВТОРОЙ ЭКРАН (Матрица ноутбука 16:10, 60 Гц, справа) ───
+output "eDP-1" {
+    mode "1920x1200@60.010"
+    scale 1.0
+
+    // Смещение ровно на ширину основного экрана (1920px).
+    // По оси Y выровнен по верхнему краю (y=0).
+    position x=1920 y=0
+
+    backdrop-color "#0a0a0a"
+
+    hot-corners {
+        off
+    }
 }

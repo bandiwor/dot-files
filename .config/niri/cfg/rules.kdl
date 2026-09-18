@@ -1,37 +1,77 @@
-    window-rule {
-        geometry-corner-radius 20 // Set every window radius to 20
-        clip-to-geometry true
-    }
+// ─── БАЗОВАЯ ГЕОМЕТРИЯ (FLAT-BRUTALISM) ───
+window-rule {
+    geometry-corner-radius 0
+    clip-to-geometry true
+}
 
-     // if you use steam you will probably like these
-    window-rule {
-        match app-id="steam"
-        exclude title=r#"^[Ss]team$"#
-        open-floating true
-    }
+// ─── TUI HUD И СИСТЕМНЫЕ ОВЕРЛЕИ (FOOTCLIENT) ───
+// Полноэкранный архитектурный дашборд (Mod+T: часы, погода, календарь)
+window-rule {
+    match app-id="float-dash"
+    open-floating true
+    default-column-width { fixed 1300; }
+    default-window-height { fixed 680; }
+}
 
-    window-rule {
-       match app-id="steam" title=r#"^notificationtoasts_\d+_desktop$"#
-       default-floating-position x=10 y=10 relative-to="bottom-right"
-       open-focused false
-    }
+// Мониторинг ресурсов и системные утилиты (Mod+I: btop, yazi)
+window-rule {
+    match app-id="float-hud"
+    open-floating true
+    default-column-width { fixed 960; }
+    default-window-height { fixed 600; }
+}
 
-    layer-rule {
-        match namespace="^noctalia-wallpaper*"
-        place-within-backdrop true
-    }
+// Компактные всплывающие меню и микро-диалоги
+window-rule {
+    match app-id="float-mini"
+    open-floating true
+    default-column-width { fixed 560; }
+    default-window-height { fixed 420; }
+}
 
-    window-rule {
-        match app-id="firefox" title="^Picture-in-Picture$"
-        match app-id="firefox" title="^Картинка в картинке$"
-        open-floating true
-    }
+// ─── FIREFOX PICTURE-IN-PICTURE ───
+window-rule {
+    match app-id="firefox$" title="^Picture-in-Picture$"
+    match app-id="firefox$" title="^Картинка в картинке$"
+    open-floating true
+    default-column-width { fixed 480; }
+    default-window-height { fixed 270; }
+    default-floating-position x=24 y=24 relative-to="bottom-right"
+    open-focused false
+}
 
-    window-rule {
-        match app-id="xdg-desktop-portal-gtk"
-        match app-id="org.freedesktop.impl.portal.desktop.gtk"
-        match title="^Open File$"
-        match title="^Select a File$"
-        match title="^Choose wallpaper$"
-        open-floating true
-    }
+// ─── STEAM И ИГРОВОЙ ИНТЕРФЕЙС ───
+window-rule {
+    match app-id="^steam$"
+    exclude title=r#"^[Ss]team$"#
+    exclude title="^Steam Big Picture Mode$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^steam$" title=r#"^notificationtoasts_\d+_desktop$"#
+    default-floating-position x=16 y=16 relative-to="bottom-right"
+    open-focused false
+}
+
+// ─── ПОРТАЛЫ, ДИАЛОГИ И АВТОРИЗАЦИЯ ───
+window-rule {
+    match app-id="xdg-desktop-portal-gtk"
+    match app-id="org.freedesktop.impl.portal.desktop.gtk"
+    match app-id="polkit-gnome-authentication-agent-1"
+    match app-id="hyprpolkitagent"
+    match title="^Open File$"
+    match title="^Select a File$"
+    match title="^Choose wallpaper$"
+    match title="^Save As$"
+    match title="^Сохранить как$"
+    match title="^Открыть файл$"
+    open-floating true
+}
+
+// ─── ПРИВАТНОСТЬ И СТРИМИНГ ───
+window-rule {
+    match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+    match app-id=r#"^bitwarden$"#
+    block-out-from "screencast"
+}

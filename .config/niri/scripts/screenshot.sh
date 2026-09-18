@@ -1,5 +1,7 @@
 #!/bin/sh
 
+mkdir -p "$HOME/Pictures"
+
 FILENAME="$(date +'%Y-%m-%d-%H%M%S_shot.png')"
 FILE="$HOME/Pictures/$FILENAME"
 
@@ -10,10 +12,8 @@ else
     grim "$FILE"
 fi
 
-sleep 0.1
-
 if [ -f "$FILE" ]; then
-    echo -n "file://$FILE" | wl-copy -t text/uri-list
+    wl-copy -t image/png < "$FILE"
     
-    notify-send "Shot!" " ~/Pictures/$FILENAME" -i "$FILE"
+    notify-send "Shot!" "Сохранено в ~/Pictures/$FILENAME" -i "$FILE"
 fi

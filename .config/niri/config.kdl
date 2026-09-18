@@ -6,8 +6,7 @@ include "./cfg/display.kdl"
 include "./cfg/layout.kdl"
 include "./cfg/rules.kdl"
 include "./cfg/misc.kdl"
+include "./cfg/gestures.kdl"
+include "./cfg/recent-windows.kdl"
 
-
-
-include "./noctalia.kdl"
 

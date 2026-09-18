@@ -1,14 +1,84 @@
-    layout {
-        gaps 16 // Gap between windows
-        center-focused-column "never" // Don’t auto-center focused column
+layout {
+    // Равномерный зазор между окнами (модульный шаг сетки)
+    gaps 0
 
-        background-color "transparent" // <- needed for noctalia-shell to set wallpaper
+    // Поведение горизонтальной ленты при навигации
+    center-focused-column "never"
+    always-center-single-column
 
-        preset-column-widths {
-            proportion 0.33333
-            proportion 0.5
-            proportion 0.66667
-        }
+    // Чистый фоновый цвет рабочего пространства под окнами
+    background-color "#0a0a0a"
 
-        struts {}
+    // Режим открытия окон: обычный тайлинг (не вкладки)
+    default-column-display "normal"
+
+    // ─── ГЕОМЕТРИЯ И СЕТКА ОКОН ───
+
+    // Новое окно занимает ровно половину экрана
+    default-column-width { proportion 0.5; }
+
+    // Циклическое переключение ширины (Mod+R / Mod+Shift+R)
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
     }
+
+    // Фиксированные пропорции высоты при вертикальном разделении (Mod+Ctrl+Shift+R)
+    preset-window-heights {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    // ─── РАМКИ И ФОКУС (FLAT-BRUTALISM) ───
+
+    // Отключаем толстое внешнее кольцо фокуса
+    focus-ring {
+        off
+    }
+
+    // Строгая контурная 1px рамка вокруг каждого окна
+    border {
+        width 1
+        active-color "#ffffff"
+        inactive-color "#333333"
+        urgent-color "#ffffff"
+    }
+
+    // Отключение псевдо-3D теней для сохранения чистого плоского вида
+    shadow {
+        off
+    }
+
+    // ─── ИНДИКАТОР ВКЛАДОК (MOD+W) ───
+
+    tab-indicator {
+        // Скрывать полоску, если в колонке только одно окно
+        hide-when-single-tab
+
+        // Включать индикатор в габариты колонки без наплыва на соседние окна
+        place-within-column
+
+        position "top"
+        width 3
+        gap 4
+        gaps-between-tabs 4
+        length total-proportion=1.0
+
+        // Строгие прямые углы без скруглений
+        corner-radius 0
+
+        // Монохромные акценты активной вкладки
+        active-color "#ffffff"
+        inactive-color "#333333"
+        urgent-color "#ffffff"
+    }
+
+    // ─── ПОДСВЕТКА ВСТАВКИ ПРИ ПЕРЕМЕЩЕНИИ ОКОН ───
+
+    insert-hint {
+        // Приглушенная белая полупрозрачная плашка вместо дефолтного оранжевого цвета
+        color "#ffffff25"
+    }
+}

@@ -1,0 +1,40 @@
+# ─── ГЕОМЕТРИЯ И СЕТКА ───
+font=JetBrains Mono 10
+anchor=top-right
+# 8px сверху и между плашками, 12px справа (в шаг gaps Niri)
+margin=8,12,0,0
+padding=8,12
+width=290
+border-size=1
+border-radius=0
+
+# ─── СТЕК И ПОВЕДЕНИЕ ───
+max-visible=3
+sort=-time
+default-timeout=3500
+layer=overlay
+
+# ─── ПАЛИТРА FLAT-БРУТАЛИЗМА ───
+background-color=#0a0a0aff
+text-color=#d4d8dcff
+border-color=#333333ff
+progress-color=over #ffffff22
+
+# ─── ИЕРАРХИЯ ТИПОГРАФИКИ (PANGO) ───
+icons=0
+format=<span size="8500" color="#8a8a8a"><b>%s</b></span>\n%b
+
+# ─── СТАТУСЫ СРОЧНОСТИ ───
+[urgency=low]
+border-color=#222222ff
+text-color=#727f8cff
+default-timeout=2000
+
+[urgency=normal]
+border-color=#3a3a3aff
+text-color=#d4d8dcff
+
+[urgency=critical]
+border-color=#d4d8dcff
+text-color=#ffffffff
+default-timeout=0

@@ -1,0 +1,20 @@
+gestures {
+    // Защита от случайного скролла тайлинга при перетаскивании файлов между мониторами
+    dnd-edge-view-scroll {
+        trigger-width 24
+        delay-ms 150
+        max-speed 1200
+    }
+
+    // Защита от случайного переключения воркспейсов при Drag-and-Drop в Overview
+    dnd-edge-workspace-switch {
+        trigger-height 40
+        delay-ms 150
+        max-speed 1200
+    }
+
+    // Полное отключение хот-корнеров (вызов овервью только по Mod+O)
+    hot-corners {
+        off
+    }
+}

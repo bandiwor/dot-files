@@ -1,29 +1,56 @@
-// ────────────── Input Configuration ──────────────
-// https://github.com/YaLTeR/niri/wiki/Configuration:-Input
-
 input {
     keyboard {
+        // Мгновенный отклик для быстрого набора и навигации в Neovim / Kitty
         repeat-delay 250
         repeat-rate 40
+
+        // Единая раскладка для всей системы (не сбрасывается отдельно в каждом окне)
+        track-layout "global"
 
         xkb {
             layout "us,ru"
             options "grp:win_space_toggle"
         }
-        numlock // Enable numlock on startup
+
+        // Включение цифрового блока при старте
+        numlock
     }
 
     touchpad {
-        tap // Enable tap-to-click
-        natural-scroll // Enable natural (macOS-style) scrolling
+        // Касание для клика
+        tap
+
+        // Блокировка тачпада при наборе текста (предотвращает случайные прыжки курсора)
         dwt
+
+        // Натуральный скролл (macOS-style)
+        natural-scroll
+
+        // Клик двумя пальцами — ПКМ, тремя — СКМ в любой точке тачпада
+        click-method "clickfinger"
+        scroll-method "two-finger"
+
+        // Плавная акселерация курсора для сенсорной панели
+        accel-profile "adaptive"
+
+        // Раскомментируйте, если при подключении внешней мыши за столом хотите отключать тачпад:
+        // disabled-on-external-mouse
     }
 
     mouse {
+        // Честный отклик сенсора 1:1 без ускорения и искажений кривой
         accel-profile "flat"
         accel-speed 0.0
     }
 
-    focus-follows-mouse // Automatically focus windows under the mouse pointer
-    workspace-auto-back-and-forth // Enable workspace back & forth switching
+    // ─── ФОКУС И ЭРГОНОМИКА ЛЕНТЫ ───
+
+    // Фокус следует за мышью ТОЛЬКО в пределах видимой области (без авто-скролла ленты)
+    focus-follows-mouse max-scroll-amount="0%"
+
+    // Перемещение курсора строго в центр активного окна при навигации с клавиатуры
+    warp-mouse-to-focus mode="center-xy"
+
+    // Повторный переход на текущий воркспейс возвращает на предыдущий
+    workspace-auto-back-and-forth
 }

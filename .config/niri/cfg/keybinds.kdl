@@ -1,31 +1,40 @@
 binds {
-    Mod+Shift+ESCAPE                     { show-hotkey-overlay; }
+    // ─── Системная справка ───
+    Mod+Shift+Escape                    { show-hotkey-overlay; }
 
-    // ─── Applications ───
+    // ─── Запуск приложений ───
     Mod+Return                          hotkey-overlay-title="Open Terminal: Kitty" { spawn "kitty"; }
-    Mod+R                               hotkey-overlay-title="Open App Launcher: noctalia launcher" { spawn-sh "qs -c noctalia-shell ipc call launcher toggle"; }
-    Mod+B                               hotkey-overlay-title="Open Browser: firefox" { spawn "firefox"; }
+    Mod+B                               hotkey-overlay-title="Open Browser: Firefox" { spawn "firefox"; }
     Mod+U                               hotkey-overlay-title="Open VPN: Happ" { spawn "happ"; }
-    Mod+ALT+L                           hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
-    Mod+M                               hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
+    Mod+E                               hotkey-overlay-title="File Manager: Yazi (Foot)" { spawn "foot" "-e" "yazi"; }
 
-    Mod+E                               hotkey-overlay-title="File Manager: Yazi" { spawn "kitty" "-e" "yazi"; }
+    // ─── Системные хабы и меню ───
+    Mod+R                               hotkey-overlay-title="App Launcher: Fuzzel" { spawn "fuzzel"; }
+    Mod+T                               hotkey-overlay-title="Toggle Clock HUD" { spawn "killall" "-SIGUSR1" "waybar"; }
+    Mod+P                               hotkey-overlay-title="Power & Battery Profile" { spawn "~/.config/niri/scripts/menu-power.sh"; }
+    Mod+N                               hotkey-overlay-title="Wireless Hub (Wi-Fi / BT)" { spawn "~/.config/niri/scripts/menu-wireless.sh"; }
+    Mod+I                               hotkey-overlay-title="Display & Brightness Hub" { spawn "~/.config/niri/scripts/menu-display.sh"; }
+    Mod+Shift+I                         hotkey-overlay-title="Audio & Sink Manager" { spawn "~/.config/niri/scripts/menu-audio.sh"; }
+    Mod+M                               hotkey-overlay-title="Session Menu" { spawn "~/.config/niri/scripts/menu-session.sh"; }
+    Mod+Alt+L                           hotkey-overlay-title="Lock Screen" { spawn "hyprlock"; }
 
-    // ─── Media Controls ───
-    XF86AudioRaiseVolume                allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume increase"; }
-    XF86AudioLowerVolume                allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume decrease"; }
-    XF86AudioMute                       allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume muteOutput"; }
-    XF86AudioMicMute                    allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call volume muteInput"; }
-    XF86AudioNext                       allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call media next"; }
-    XF86AudioPrev                       allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call media previous"; }
-    XF86AudioPlay                       allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call media playPause"; }
-    XF86AudioPause                      allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call media playPause"; }
+    Mod+Y       hotkey-overlay-title="Clipboard History" { spawn "~/.config/niri/scripts/clipboard.sh"; }
+    Mod+Shift+Y hotkey-overlay-title="Clear Clipboard History" { spawn "~/.config/niri/scripts/clipboard.sh" "wipe"; }
 
-    // ─── Brightness Controls ───
-    XF86MonBrightnessUp                 allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call brightness increase"; }
-    XF86MonBrightnessDown               allow-when-locked=true { spawn-sh "qs -c noctalia-shell ipc call brightness decrease"; }
+    // ─── Аппаратные мультимедиа-клавиши ───
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn "~/.config/niri/scripts/osd.sh" "vol-up"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn "~/.config/niri/scripts/osd.sh" "vol-down"; }
+    XF86AudioMute         allow-when-locked=true { spawn "~/.config/niri/scripts/osd.sh" "vol-mute"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn "~/.config/niri/scripts/osd.sh" "mic-mute"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "~/.config/niri/scripts/osd.sh" "bright-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "~/.config/niri/scripts/osd.sh" "bright-down"; }
 
-    // ─── Window Movement and Focus ───
+    XF86AudioNext         allow-when-locked=true { spawn "~/.config/niri/scripts/media.sh" "next"; }
+    XF86AudioPrev         allow-when-locked=true { spawn "~/.config/niri/scripts/media.sh" "previous"; }
+    XF86AudioPlay         allow-when-locked=true { spawn "~/.config/niri/scripts/media.sh" "play-pause"; }
+    XF86AudioPause        allow-when-locked=true { spawn "~/.config/niri/scripts/media.sh" "play-pause"; }
+
+    // ─── Управление окнами и фокусом ───
     Mod+Q                               { close-window; }
 
     Mod+Left                            { focus-column-left; }
@@ -33,55 +42,53 @@ binds {
     Mod+Right                           { focus-column-right; }
     Mod+L                               { focus-column-right; }
     Mod+Up                              { focus-window-up; }
-    // Mod+K                               { focus-window-up; }
     Mod+Down                            { focus-window-down; }
-    // Mod+J                               { focus-window-down; }
-    Mod+K { focus-workspace-up; }
-    Mod+J { focus-workspace-down; }
 
-    Mod+CTRL+Left                       { move-column-left; }
-    Mod+CTRL+H                          { move-column-left; }
-    Mod+CTRL+Right                      { move-column-right; }
-    Mod+CTRL+L                          { move-column-right; }
-    Mod+CTRL+UP                         { move-window-up; }
-    Mod+CTRL+K                          { move-window-up; }
-    Mod+CTRL+Down                       { move-window-down; }
-    Mod+CTRL+J                          { move-window-down; }
+    Mod+K                               { focus-workspace-up; }
+    Mod+J                               { focus-workspace-down; }
+
+    Mod+Ctrl+Left                       { move-column-left; }
+    Mod+Ctrl+H                          { move-column-left; }
+    Mod+Ctrl+Right                      { move-column-right; }
+    Mod+Ctrl+L                          { move-column-right; }
+    Mod+Ctrl+Up                         { move-column-to-workspace-up; }
+    Mod+Ctrl+K                          { move-column-to-workspace-up; }
+    Mod+Ctrl+Down                       { move-column-to-workspace-down; }
+    Mod+Ctrl+J                          { move-column-to-workspace-down; }
 
     Mod+Home                            { focus-column-first; }
     Mod+End                             { focus-column-last; }
-    Mod+CTRL+Home                       { move-column-to-first; }
-    Mod+CTRL+End                        { move-column-to-last; }
+    Mod+Ctrl+Home                       { move-column-to-first; }
+    Mod+Ctrl+End                        { move-column-to-last; }
 
+    // ─── Мультимониторность (HDMI-A-1 / eDP-1) ───
     Mod+Shift+Left                      { focus-monitor-left; }
     Mod+Shift+Right                     { focus-monitor-right; }
-    Mod+Shift+UP                        { focus-monitor-up; }
+    Mod+Shift+Up                        { focus-monitor-up; }
     Mod+Shift+Down                      { focus-monitor-down; }
 
-    Mod+Shift+CTRL+Left                 { move-column-to-monitor-left; }
-    Mod+Shift+CTRL+Right                { move-column-to-monitor-right; }
-    Mod+Shift+CTRL+UP                   { move-column-to-monitor-up; }
-    Mod+Shift+CTRL+Down                 { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+Left                 { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Right                { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+Up                   { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+Down                 { move-column-to-monitor-down; }
 
-    Mod+Alt+K { move-column-to-workspace-up; }
-    Mod+Alt+J { move-column-to-workspace-down; }
-
-    // ─── Workspace Switching ───
+    // ─── Навигация колесом мыши ───
     Mod+WheelScrollDown                 cooldown-ms=150 { focus-workspace-down; }
     Mod+WheelScrollUp                   cooldown-ms=150 { focus-workspace-up; }
-    Mod+CTRL+WheelScrollDown            cooldown-ms=150 { move-column-to-workspace-down; }
-    Mod+CTRL+WheelScrollUp              cooldown-ms=150 { move-column-to-workspace-up; }
+    Mod+Ctrl+WheelScrollDown            cooldown-ms=150 { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollUp              cooldown-ms=150 { move-column-to-workspace-up; }
 
-    Mod+WheelScrollRight                { focus-column-right; }
-    Mod+WheelScrollLeft                 { focus-column-left; }
-    Mod+CTRL+WheelScrollRight           { move-column-right; }
-    Mod+CTRL+WheelScrollLeft            { move-column-left; }
+    Mod+WheelScrollRight                cooldown-ms=150 { focus-column-right; }
+    Mod+WheelScrollLeft                 cooldown-ms=150 { focus-column-left; }
+    Mod+Ctrl+WheelScrollRight           cooldown-ms=150 { move-column-right; }
+    Mod+Ctrl+WheelScrollLeft            cooldown-ms=150 { move-column-left; }
 
-    Mod+Shift+WheelScrollDown           { focus-column-right; }
-    Mod+Shift+WheelScrollUp             { focus-column-left; }
-    Mod+CTRL+Shift+WheelScrollDown      { move-column-right; }
-    Mod+CTRL+Shift+WheelScrollUp        { move-column-left; }
+    Mod+Shift+WheelScrollDown           cooldown-ms=150 { focus-column-right; }
+    Mod+Shift+WheelScrollUp             cooldown-ms=150 { focus-column-left; }
+    Mod+Ctrl+Shift+WheelScrollDown      cooldown-ms=150 { move-column-right; }
+    Mod+Ctrl+Shift+WheelScrollUp        cooldown-ms=150 { move-column-left; }
 
+    // ─── Воркспейсы 1–9 ───
     Mod+1                               { focus-workspace 1; }
     Mod+2                               { focus-workspace 2; }
     Mod+3                               { focus-workspace 3; }
@@ -92,44 +99,48 @@ binds {
     Mod+8                               { focus-workspace 8; }
     Mod+9                               { focus-workspace 9; }
 
-    Mod+Alt+1                          { move-column-to-workspace 1; }
-    Mod+Alt+2                          { move-column-to-workspace 2; }
-    Mod+Alt+3                          { move-column-to-workspace 3; }
-    Mod+Alt+4                          { move-column-to-workspace 4; }
-    Mod+Alt+5                          { move-column-to-workspace 5; }
-    Mod+Alt+6                          { move-column-to-workspace 6; }
-    Mod+Alt+7                          { move-column-to-workspace 7; }
-    Mod+Alt+8                          { move-column-to-workspace 8; }
-    Mod+Alt+9                          { move-column-to-workspace 9; }
+    Mod+Alt+1                           { move-column-to-workspace 1; }
+    Mod+Alt+2                           { move-column-to-workspace 2; }
+    Mod+Alt+3                           { move-column-to-workspace 3; }
+    Mod+Alt+4                           { move-column-to-workspace 4; }
+    Mod+Alt+5                           { move-column-to-workspace 5; }
+    Mod+Alt+6                           { move-column-to-workspace 6; }
+    Mod+Alt+7                           { move-column-to-workspace 7; }
+    Mod+Alt+8                           { move-column-to-workspace 8; }
+    Mod+Alt+9                           { move-column-to-workspace 9; }
 
-    Mod+TAB                             { focus-workspace-previous; }
+    Mod+Tab                             { focus-workspace-previous; }
 
-    // ─── Layout Controls ───
-    Mod+Alt+F                          { expand-column-to-available-width; }
+    // ─── Геометрия и размеры колонок ───
+    // Циклическое переключение пресетов ширины (1/3 -> 1/2 -> 2/3)
+    // Mod+Space                           { switch-preset-column-width; }
+    // Mod+Shift+Space                     { switch-preset-window-height; }
+
+    // Втягивание и выталкивание окон из колонки/стека
+    Mod+BracketLeft                     { consume-or-expel-window-left; }
+    Mod+BracketRight                    { consume-or-expel-window-right; }
+
+    Mod+Alt+F                           { expand-column-to-available-width; }
     Mod+C                               { center-column; }
-    Mod+CTRL+C                          { center-visible-columns; }
+    Mod+Ctrl+C                          { center-visible-columns; }
     Mod+Minus                           { set-column-width "-10%"; }
     Mod+Equal                           { set-column-width "+10%"; }
     Mod+Shift+Minus                     { set-window-height "-10%"; }
     Mod+Shift+Equal                     { set-window-height "+10%"; }
 
-    // ─── Modes ───
+    // ─── Режимы отображения ───
     Mod+V                               { toggle-window-floating; }
     Mod+F                               { fullscreen-window; }
     Mod+W                               { toggle-column-tabbed-display; }
 
-    // ─── Screenshots ───
-    CTRL+P                              { spawn "~/.config/niri/scripts/screenshot.sh" "area"; }
-    CTRL+Shift+P                        { spawn "~/.config/niri/scripts/screenshot.sh"; }
-//    CTRL+Shift+W                        { screenshot-window; }
+    // ─── Скриншоты (без конфликтов с Ctrl+P) ───
+    Print                               { spawn "~/.config/niri/scripts/screenshot.sh" "area"; }
+    Shift+Print                         { spawn "~/.config/niri/scripts/screenshot.sh"; }
 
-    // ─── Emergency Escape Key ───
-    // Use this when a fullscreen app blocks your keybinds.
-    // It disables any active keyboard shortcut inhibitor, restoring control.
-    Mod+ESCAPE                          allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    // ─── Аварийный сброс захвата ввода (VM / RDP) ───
+    Mod+Escape                          allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
 
-    // ─── Exit / Power ───
-    CTRL+ALT+Delete                     { quit; } // Also quits Niri
-    Mod+Shift+P                         { power-off-monitors; } // Turn off screens (useful for OLED or privacy)
+    // ─── Питание и сессия ───
+    Ctrl+Alt+Delete                     { quit; }
     Mod+O                               repeat=false { toggle-overview; }
 }

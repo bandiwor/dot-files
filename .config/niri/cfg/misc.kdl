@@ -1,25 +1,76 @@
-    prefer-no-csd
-    screenshot-path null
+// Отключение клиентских заголовков и скруглений сторонних окон
+prefer-no-csd
 
-    environment {
-        ELECTRON_OZONE_PLATFORM_HINT "auto"
-        QT_QPA_PLATFORM "wayland"
-        QT_QPA_PLATFORMTHEME "gtk3"
-        QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
-        XDG_CURRENT_DESKTOP "niri"
-        XDG_SESSION_TYPE "wayland"
-    }
+// Отключение встроенной записи скриншотов (используется скрипт с grim/slurp)
+screenshot-path null
 
-    cursor {
-        xcursor-theme "WinSur-dark-cursors"
-        xcursor-size 24
-    }
+// ─── ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ───
+environment {
+    // Принудительный Wayland для Electron и Qt без X11-прослойки
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+    QT_QPA_PLATFORM "wayland"
+    QT_QPA_PLATFORMTHEME "gtk3"
+    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+    MOZ_ENABLE_WAYLAND "1"
 
-    debug {
-        // Allows notification actions and window activation from Noctalia.
-        honor-xdg-activation-with-invalid-serial
-    }
+    // Идентификация сессии для xdg-desktop-portal
+    XDG_CURRENT_DESKTOP "niri"
+    XDG_SESSION_TYPE "wayland"
 
-    hotkey-overlay {
-       skip-at-startup
+    // Синхронизация системного курсора для всех GTK/Qt приложений
+    XCURSOR_THEME "WinSur-dark-cursors"
+    XCURSOR_SIZE "24"
+}
+
+// ─── КУРСОР МЫШИ ───
+cursor {
+    xcursor-theme "WinSur-dark-cursors"
+    xcursor-size 24
+
+    // Автоматически прятать курсор при вводе текста
+    hide-when-typing
+
+    // Скрывать курсор через 2 секунды бездействия
+    hide-after-inactive-ms 2000
+}
+
+// ─── РЕЖИМ ОБЗОРА (MOD+O OVERVIEW) ───
+overview {
+    // Степень уменьшения рабочих пространств (0.1 .. 0.75)
+    zoom 0.5
+
+    // Цвет подложки в овервью
+    backdrop-color "#000000"
+
+    // Отключение размытых теней вокруг рабочих столов
+    workspace-shadow {
+        off
     }
+}
+
+// ─── БУФЕР ОБМЕНА ───
+clipboard {
+    // Отключение вставки по СКМ для защиты от случайных вставок из primary selection
+    // (Раскомментируйте, если хотите оставить только явный Ctrl+C / Ctrl+V):
+    // disable-primary
+}
+
+// ─── ИНТЕРФЕЙС И УВЕДОМЛЕНИЯ NIRI ───
+hotkey-overlay {
+    // Не показывать окно справки по хоткеям при входе в систему
+    skip-at-startup
+
+    // Скрывать в оверлее действия, на которые не назначен бинд
+    hide-not-bound
+}
+
+config-notification {
+    // Показывать системное уведомление только при наличии реальной синтаксической ошибки
+    // disable-failed
+}
+
+// ─── ГРАФИЧЕСКИЕ ЭФФЕКТЫ (FLAT-BRUTALISM) ───
+// Полное отключение шейдерного блюра для максимальной производительности iGPU
+blur {
+    off
+}

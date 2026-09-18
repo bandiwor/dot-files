@@ -1,0 +1,34 @@
+{
+    "layer": "top",
+    "position": "top",
+    "exclusive": false,
+    "passthrough": true,
+    "mode": "hide",
+    "modules-right": [
+        "clock",
+        "battery"
+    ],
+    "clock": {
+        "format": "{:%H:%M  %a %d.%m}",
+        "interval": 60,
+        "tooltip": false
+    },
+    "battery": {
+        "states": {
+            "warning": 20,
+            "critical": 10
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "󰂄 {capacity}%",
+        "format-plugged": "󰚥 {capacity}%",
+        "format-icons": [
+            "󰂎",
+            "󰁺",
+            "󰁼",
+            "󰁾",
+            "󰂀",
+            "󰁹"
+        ],
+        "tooltip": false
+    }
+}

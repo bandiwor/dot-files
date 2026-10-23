@@ -136,7 +136,9 @@ binds {
 
     // ─── Скриншоты (без конфликтов с Ctrl+P) ───
     Print                               { spawn "~/.config/niri/scripts/screenshot.sh" "area"; }
-    Shift+Print                         { spawn "~/.config/niri/scripts/screenshot.sh"; }
+    Shift+Print                         { spawn "~/.config/niri/scripts/screenshot.sh" "all"; }
+    Mod+Print                           hotkey-overlay-title="Screenshot Menu" { spawn "~/.config/niri/scripts/screenshot.sh" "menu"; }
+    Alt+Print                           { spawn "~/.config/niri/scripts/screenshot.sh" "window"; }
 
     // ─── Аварийный сброс захвата ввода (VM / RDP) ───
     Mod+Escape                          allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }

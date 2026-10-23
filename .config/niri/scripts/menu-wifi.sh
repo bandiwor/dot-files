@@ -3,10 +3,8 @@
 # Открывается мгновенно: список берётся из кэша NM (--rescan no), свежий скан идёт фоном.
 # Выбор строки по индексу (fuzzel --index), а не разбором текста — SSID с любыми символами безопасны.
 
-fz() { fuzzel --dmenu "$@"; }
-
-notify()     { notify-send -h string:x-canonical-private-synchronous:wifi-hub "NETWORK" "$1"; }
-notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:wifi-hub "NETWORK ERROR" "$1"; }
+UI_TITLE=NETWORK UI_TAG=wifi-hub
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 WLAN_IF=$(nmcli -t -f DEVICE,TYPE dev status 2>/dev/null | awk -F: '$2=="wifi"{print $1; exit}')
 if [ -z "$WLAN_IF" ]; then

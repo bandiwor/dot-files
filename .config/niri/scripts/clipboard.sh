@@ -3,22 +3,14 @@
 # Строки показываются без служебных id, картинки — с размером; выбор по индексу.
 # Внизу списка: удаление одной записи и очистка истории (с подтверждением).
 
-fz() { fuzzel --dmenu "$@"; }
-
-notify() { notify-send -t 1500 -h string:x-canonical-private-synchronous:clipboard "CLIPBOARD" "$1"; }
+UI_TITLE=CLIPBOARD UI_TAG=clipboard
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 MAX=300
 BIN_RE='^\[\[ binary data ([0-9.]+ [KMG]?i?B) ([a-z]+) ([0-9]+)x([0-9]+) \]\]$'
 
-confirm_wipe() {
-    local ans
-    ans=$(printf '%s\n' "Нет, отмена" "Да, очистить всю историю" |
-        fz --index --lines 2 --width 40 --prompt "Очистка буфера -> ") || return 1
-    [ "$ans" = "1" ]
-}
-
 wipe() {
-    if confirm_wipe; then
+    if confirm "очистить всю историю" "Очистка буфера"; then
         cliphist wipe
         notify "История очищена"
     fi

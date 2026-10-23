@@ -4,20 +4,10 @@
 # а актуальное значение подтягивается фоном для следующего открытия.
 # Выбор по индексу (fuzzel --index).
 
-fz() { fuzzel --dmenu "$@"; }
-
-notify() { notify-send -h string:x-canonical-private-synchronous:display-hub "DISPLAY" "$1"; }
-notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:display-hub "DISPLAY ERROR" "$1"; }
+UI_TITLE=DISPLAY UI_TAG=display-hub
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 CACHE="${XDG_RUNTIME_DIR:-/tmp}/niri-ddc-brightness"
-
-bar() {
-    local v=${1:-0} f
-    f=$(( (v + 5) / 10 )); [ "$f" -gt 10 ] && f=10; [ "$f" -lt 0 ] && f=0
-    printf '%s%s' "$(printf '█%.0s' $(seq 1 "$f") 2>/dev/null)" "$(printf '░%.0s' $(seq 1 $((10 - f))) 2>/dev/null)"
-}
-
-clamp() { local v=$1; [ "$v" -lt "$2" ] && v=$2; [ "$v" -gt 100 ] && v=100; printf '%s' "$v"; }
 
 laptop_get() { brightnessctl -m 2>/dev/null | head -n 1 | cut -d, -f4 | tr -d '%'; }
 
@@ -41,7 +31,7 @@ set_laptop() {
     cur=$(laptop_get); cur=${cur:-0}
     new=$(pick_level "Ноутбук" "$cur") || return 1
     case "$new" in
-        +*|-*) new=$(clamp $(( cur + new )) 1) ;;
+        +*|-*) new=$(clamp $(( cur + new )) 1 100) ;;
     esac
     brightnessctl set "${new}%" >/dev/null 2>&1 || { notify_err "Не удалось изменить яркость ноутбука"; return 1; }
     notify "Яркость ноутбука: $(laptop_get)%"
@@ -55,7 +45,7 @@ set_ext() {
         +*|-*)
             # относительный шаг считаем от свежего значения
             local fresh; fresh=$(ext_read); cur=${fresh:-$cur}
-            new=$(clamp $(( cur + new )) 0)
+            new=$(clamp $(( cur + new )) 0 100)
             ;;
     esac
     notify "HDMI: установка яркости ${new}%..."
@@ -71,8 +61,7 @@ set_ext() {
 while true; do
     ext_refresh_bg
 
-    ROWS=() KIND=()
-    add() { ROWS+=("$1"); KIND+=("$2"); }
+    menu_reset
 
     if LAP=$(laptop_get) && [ -n "$LAP" ]; then
         add "$(bar "$LAP")  $(printf '%3d' "$LAP")%  Ноутбук" laptop
@@ -88,8 +77,7 @@ while true; do
     add "⏻ HDMI: Включить питание" ext_on
     add "⏻ Все экраны: выключить (DPMS)" dpms
 
-    IDX=$(printf '%s\n' "${ROWS[@]}" |
-        fz --index --lines "${#ROWS[@]}" --width 50 --prompt "DISPLAY -> ") || exit 0
+    IDX=$(show_menu "DISPLAY -> " 50) || exit 0
     [ -z "$IDX" ] && exit 0
 
     case "${KIND[IDX]}" in

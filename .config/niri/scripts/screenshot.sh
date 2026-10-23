@@ -10,10 +10,8 @@
 DIR="${XDG_PICTURES_DIR:-$HOME/Pictures}"
 FILE="$DIR/$(date +'%Y-%m-%d-%H%M%S')_shot.png"
 
-notify()     { notify-send -h string:x-canonical-private-synchronous:screenshot "$@"; }
-notify_err() { notify-send -u critical "SCREENSHOT ERROR" "$1"; }
-
-fz() { fuzzel --dmenu "$@"; }
+UI_TITLE=SCREENSHOT UI_TAG=screenshot
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 focused_output() {
     niri msg focused-output 2>/dev/null | sed -n 's/^Output .*(\(.*\))$/\1/p' | head -n 1
@@ -27,7 +25,7 @@ capture() {
         return 1
     fi
     if [ -s "$FILE" ]; then
-        notify "SCREENSHOT" "Сохранено: ${FILE/#$HOME/\~}" -i "$FILE"
+        notify "Сохранено: ${FILE/#$HOME/\~}" -i "$FILE"
     else
         rm -f "$FILE"
         notify_err "Пустой снимок"
@@ -43,7 +41,7 @@ select_area() {
 delay() { # delay СЕК — с обратным отсчётом в уведомлении
     local s=$1
     while [ "$s" -gt 0 ]; do
-        notify "SCREENSHOT" "Снимок через ${s} с…" -t 1100
+        notify "Снимок через ${s} с…" -t 1100
         sleep 1
         s=$((s - 1))
     done
@@ -61,7 +59,7 @@ run() {
             ;;
         window)
             # Штатное действие niri: окно уходит в буфер обмена
-            niri msg action screenshot-window && notify "SCREENSHOT" "Окно скопировано в буфер"
+            niri msg action screenshot-window && notify "Окно скопировано в буфер"
             ;;
         all|"") capture ;;
     esac

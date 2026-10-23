@@ -5,20 +5,12 @@
 # Запись в /sys (boost, лимит заряда) идёт с повышением прав и явной ошибкой, а не молча.
 # Выбор по индексу (fuzzel --index). После действия возвращаемся в меню, Esc — выход.
 
-fz() { fuzzel --dmenu "$@"; }
-
-notify()     { notify-send -h string:x-canonical-private-synchronous:power-hub "POWER" "$1"; }
-notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:power-hub "POWER ERROR" "$1"; }
+UI_TITLE=POWER UI_TAG=power-hub
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 BAT=$(find /sys/class/power_supply -maxdepth 1 -name 'BAT*' 2>/dev/null | head -n 1)
 BOOST=/sys/devices/system/cpu/cpufreq/boost
 LIMIT="$BAT/charge_control_end_threshold"
-
-bar() {
-    local v=${1:-0} f
-    f=$(( (v + 5) / 10 )); [ "$f" -gt 10 ] && f=10; [ "$f" -lt 0 ] && f=0
-    printf '%s%s' "$(printf '█%.0s' $(seq 1 "$f") 2>/dev/null)" "$(printf '░%.0s' $(seq 1 $((10 - f))) 2>/dev/null)"
-}
 
 # sysfs_write ЗНАЧЕНИЕ ФАЙЛ: напрямую → sudo -n → pkexec; иначе явная ошибка
 sysfs_write() {
@@ -60,8 +52,7 @@ battery_rows() {
 }
 
 while true; do
-    ROWS=() KIND=() ARG=()
-    add() { ROWS+=("$1"); KIND+=("$2"); ARG+=("${3:-}"); }
+    menu_reset
 
     battery_rows
     add "──────────────── ПРОФИЛЬ ────────────────" none
@@ -88,9 +79,7 @@ while true; do
     fi
     [ -r "$LIMIT" ] && add "⚡ Лимит заряда батареи…" limit
 
-    VISIBLE=${#ROWS[@]}; [ "$VISIBLE" -gt 14 ] && VISIBLE=14
-    IDX=$(printf '%s\n' "${ROWS[@]}" |
-        fz --index --lines "$VISIBLE" --width 62 --prompt "POWER -> ") || exit 0
+    IDX=$(show_menu "POWER -> " 62 14) || exit 0
     [ -z "$IDX" ] && exit 0
 
     case "${KIND[IDX]}" in

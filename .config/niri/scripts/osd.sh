@@ -1,63 +1,84 @@
 #!/usr/bin/env bash
+# OSD для аппаратных клавиш: громкость, микрофон, яркость ноутбука.
+# Горячий путь (автоповтор клавиши): без awk/seq/subshell-цепочек — разбор вывода wpctl и
+# шкала делаются средствами bash. Новое уведомление заменяет предыдущее (synchronous-тег).
+#   osd.sh vol-up | vol-down | vol-mute | mic-mute | bright-up | bright-down
 
-make_bar() {
-    local val=${1:-0}
-    local total=10
-    local filled=$(( (val + 5) / 10 ))
-    [ "$filled" -gt 10 ] && filled=10
-    [ "$filled" -lt 0 ] && filled=0
-    local empty=$(( total - filled ))
-    printf "[%s%s] %3d%%" "$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))" "$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))" "$val"
+_dir=${0%/*}; [ "$_dir" = "$0" ] && _dir=.
+. "$_dir/lib/common.sh"
+
+SINK=@DEFAULT_AUDIO_SINK@
+SRC=@DEFAULT_AUDIO_SOURCE@
+VOL_STEP=5
+BRIGHT_STEP=5
+BRIGHT_MIN=1   # не даём экрану уйти в чёрный (0%)
+
+# osd ЗАГОЛОВОК ТЕГ ТЕКСТ
+osd() { UI_TITLE=$1 UI_TAG=$2 notify "$3" -t 1200; }
+
+# read_vol ЦЕЛЬ → VOL (проценты), MUTED (0/1)
+read_vol() {
+    local raw v
+    raw=$(wpctl get-volume "$1" 2>/dev/null) || { VOL=0; MUTED=0; return 1; }
+    v=${raw#Volume: }; v=${v%% *}
+    VOL=$((10#${v/./}))
+    [[ $raw == *MUTED* ]] && MUTED=1 || MUTED=0
 }
 
-case "$1" in
+show_volume() {
+    read_vol "$SINK"
+    if [ "$MUTED" = 1 ]; then
+        osd VOLUME volume "$(bar "$VOL")  ${VOL}%  [MUTED]"
+    else
+        osd VOLUME volume "$(bar "$VOL")  ${VOL}%"
+    fi
+}
+
+# Меняем яркость на шаг с нижней границей; -m выдаёт итоговое значение сразу
+bright_step() {
+    local cur new out
+    cur=$(brightnessctl -m 2>/dev/null | cut -d, -f4)
+    cur=${cur%\%}
+    [ -z "$cur" ] && { notify_err "Подсветка недоступна"; return 1; }
+    new=$(clamp $(( cur + $1 )) "$BRIGHT_MIN" 100)
+    out=$(brightnessctl -m set "${new}%" 2>/dev/null | cut -d, -f4)
+    out=${out%\%}
+    osd BRIGHTNESS brightness "$(bar "${out:-$new}")  ${out:-$new}%"
+}
+
+case "${1:-}" in
     vol-up)
-        wpctl set-volume -l 1.25 @DEFAULT_AUDIO_SINK@ 5%+
-        RAW=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
-        VOL=$(echo "$RAW" | awk '{print int($2 * 100)}')
-        if echo "$RAW" | grep -q "MUTED"; then
-            notify-send -r 9991 -t 1200 -h string:synchronous:volume "VOLUME" "[MUTED] $(make_bar "$VOL")"
-        else
-            notify-send -r 9991 -t 1200 -h string:synchronous:volume "VOLUME" "$(make_bar "$VOL")"
-        fi
+        wpctl set-mute "$SINK" 0
+        wpctl set-volume -l 1.25 "$SINK" "${VOL_STEP}%+"
+        show_volume
         ;;
     vol-down)
-        wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
-        RAW=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
-        VOL=$(echo "$RAW" | awk '{print int($2 * 100)}')
-        if echo "$RAW" | grep -q "MUTED"; then
-            notify-send -r 9991 -t 1200 -h string:synchronous:volume "VOLUME" "[MUTED] $(make_bar "$VOL")"
-        else
-            notify-send -r 9991 -t 1200 -h string:synchronous:volume "VOLUME" "$(make_bar "$VOL")"
-        fi
+        wpctl set-mute "$SINK" 0
+        wpctl set-volume "$SINK" "${VOL_STEP}%-"
+        show_volume
         ;;
     vol-mute)
-        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
-        RAW=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
-        VOL=$(echo "$RAW" | awk '{print int($2 * 100)}')
-        if echo "$RAW" | grep -q "MUTED"; then
-            notify-send -r 9991 -t 1200 -h string:synchronous:volume "VOLUME" "Звук выключен [MUTED]"
+        wpctl set-mute "$SINK" toggle
+        read_vol "$SINK"
+        if [ "$MUTED" = 1 ]; then
+            osd VOLUME volume "Звук выключен  [MUTED]"
         else
-            notify-send -r 9991 -t 1200 -h string:synchronous:volume "VOLUME" "Звук включен $(make_bar "$VOL")"
+            osd VOLUME volume "$(bar "$VOL")  ${VOL}%"
         fi
         ;;
     mic-mute)
-        wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
-        RAW=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null)
-        if echo "$RAW" | grep -q "MUTED"; then
-            notify-send -r 9992 -t 1200 -h string:synchronous:mic "MICROPHONE" "Микрофон заглушен [MUTED]"
+        wpctl set-mute "$SRC" toggle
+        read_vol "$SRC"
+        if [ "$MUTED" = 1 ]; then
+            osd MICROPHONE mic "Микрофон заглушен  [MUTED]"
         else
-            notify-send -r 9992 -t 1200 -h string:synchronous:mic "MICROPHONE" "Микрофон активен [UNMUTED]"
+            osd MICROPHONE mic "Микрофон активен  [LIVE]"
         fi
         ;;
-    bright-up)
-        brightnessctl set 5%+ >/dev/null
-        BR=$(brightnessctl -m 2>/dev/null | awk -F, '{print sub(/%/, "", $4) ? $4 : $4}')
-        notify-send -r 9993 -t 1200 -h string:synchronous:bright "BRIGHTNESS" "$(make_bar "$BR")"
-        ;;
-    bright-down)
-        brightnessctl set 5%- >/dev/null
-        BR=$(brightnessctl -m 2>/dev/null | awk -F, '{print sub(/%/, "", $4) ? $4 : $4}')
-        notify-send -r 9993 -t 1200 -h string:synchronous:bright "BRIGHTNESS" "$(make_bar "$BR")"
+    bright-up)   bright_step "$BRIGHT_STEP" ;;
+    bright-down) bright_step "-$BRIGHT_STEP" ;;
+    *)
+        echo "usage: ${0##*/} vol-up|vol-down|vol-mute|mic-mute|bright-up|bright-down" >&2
+        exit 2
         ;;
 esac

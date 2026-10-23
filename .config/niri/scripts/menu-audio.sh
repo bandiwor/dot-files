@@ -4,19 +4,11 @@
 # имена устройств берутся из машинного вывода, а не из рамок `wpctl status`.
 # Выбор по индексу (fuzzel --index). После действия возвращаемся в меню, Esc — выход.
 
-fz() { fuzzel --dmenu "$@"; }
-
-notify()     { notify-send -h string:x-canonical-private-synchronous:audio-hub "AUDIO" "$1"; }
-notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:audio-hub "AUDIO ERROR" "$1"; }
+UI_TITLE=AUDIO UI_TAG=audio-hub
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 SINK=@DEFAULT_AUDIO_SINK@
 SRC=@DEFAULT_AUDIO_SOURCE@
-
-bar() {
-    local v=${1:-0} f
-    f=$(( (v + 5) / 10 )); [ "$f" -gt 10 ] && f=10; [ "$f" -lt 0 ] && f=0
-    printf '%s%s' "$(printf '█%.0s' $(seq 1 "$f") 2>/dev/null)" "$(printf '░%.0s' $(seq 1 $((10 - f))) 2>/dev/null)"
-}
 
 # vol_of TARGET → "процент muted(0/1)"
 vol_of() {
@@ -63,8 +55,7 @@ while true; do
     for d in "${SINKS[@]}";   do [ "${d%%$'\t'*}" = "$DEF_SINK" ] && sink_desc=${d#*$'\t'}; done
     for d in "${SOURCES[@]}"; do [ "${d%%$'\t'*}" = "$DEF_SRC" ]  && src_desc=${d#*$'\t'};  done
 
-    ROWS=() KIND=() ARG=()
-    add() { ROWS+=("$1"); KIND+=("$2"); ARG+=("${3:-}"); }
+    menu_reset
 
     mute_tag() { [ "$1" = "1" ] && printf '  [MUTED]'; }
 
@@ -84,9 +75,7 @@ while true; do
         add "$([ "$n" = "$DEF_SRC" ] && echo '●' || echo '○') $d" set_src "$n|$d"
     done
 
-    VISIBLE=${#ROWS[@]}; [ "$VISIBLE" -gt 14 ] && VISIBLE=14
-    IDX=$(printf '%s\n' "${ROWS[@]}" |
-        fz --index --lines "$VISIBLE" --width 66 --prompt "AUDIO -> ") || exit 0
+    IDX=$(show_menu "AUDIO -> " 66 14) || exit 0
     [ -z "$IDX" ] && exit 0
 
     case "${KIND[IDX]}" in

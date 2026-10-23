@@ -3,10 +3,8 @@
 # Список мгновенный (кэш bluez), поиск новых устройств идёт фоном.
 # Выбор по индексу (fuzzel --index), имена устройств не парсятся из текста.
 
-fz() { fuzzel --dmenu "$@"; }
-
-notify()     { notify-send -h string:x-canonical-private-synchronous:bt-hub "BLUETOOTH" "$1"; }
-notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:bt-hub "BLUETOOTH ERROR" "$1"; }
+UI_TITLE=BLUETOOTH UI_TAG=bt-hub
+. "$(dirname "$(readlink -f "$0")")/lib/common.sh"
 
 MAC_RE='^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$'
 

@@ -30,6 +30,18 @@ opt.clipboard = "unnamedplus"
 -- Сохранять историю отмен (undo) даже после закрытия файла
 vim.opt.undofile = true
 
+-- Без swap-файлов: нет окна "found a swap file" после закрытия терминала/краша.
+-- Потерять правки нельзя благодаря undofile + автоформату/сохранению; внешние изменения
+-- подхватываются через autoread + checktime ниже.
+vim.opt.swapfile = false
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+    desc = "Reload files changed outside nvim",
+    callback = function()
+        if vim.fn.mode() ~= "c" then vim.cmd("checktime") end
+    end,
+})
+
 -- Новые сплиты открываются снизу и справа (естественнее)
 vim.opt.splitbelow = true
 vim.opt.splitright = true

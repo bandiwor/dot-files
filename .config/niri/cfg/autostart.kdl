@@ -1,4 +1,3 @@
-spawn-at-startup "waybar"
 spawn-at-startup "mako"
 spawn-at-startup "hypridle"
 spawn-at-startup "wl-paste" "--watch" "cliphist" "store"

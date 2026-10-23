@@ -4,31 +4,6 @@ window-rule {
     clip-to-geometry true
 }
 
-// ─── TUI HUD И СИСТЕМНЫЕ ОВЕРЛЕИ (FOOTCLIENT) ───
-// Полноэкранный архитектурный дашборд (Mod+T: часы, погода, календарь)
-window-rule {
-    match app-id="float-dash"
-    open-floating true
-    default-column-width { fixed 1300; }
-    default-window-height { fixed 680; }
-}
-
-// Мониторинг ресурсов и системные утилиты (Mod+I: btop, yazi)
-window-rule {
-    match app-id="float-hud"
-    open-floating true
-    default-column-width { fixed 960; }
-    default-window-height { fixed 600; }
-}
-
-// Компактные всплывающие меню и микро-диалоги
-window-rule {
-    match app-id="float-mini"
-    open-floating true
-    default-column-width { fixed 560; }
-    default-window-height { fixed 420; }
-}
-
 // ─── FIREFOX PICTURE-IN-PICTURE ───
 window-rule {
     match app-id="firefox$" title="^Picture-in-Picture$"

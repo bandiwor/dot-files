@@ -12,7 +12,8 @@ binds {
     Mod+R                               hotkey-overlay-title="App Launcher: Fuzzel" { spawn "fuzzel"; }
     Mod+T                               hotkey-overlay-title="Toggle Clock HUD" { spawn "~/.config/niri/scripts/hud.sh"; }
     Mod+P                               hotkey-overlay-title="Power & Battery Profile" { spawn "~/.config/niri/scripts/menu-power.sh"; }
-    Mod+N                               hotkey-overlay-title="Wireless Hub (Wi-Fi / BT)" { spawn "~/.config/niri/scripts/menu-wireless.sh"; }
+    Mod+N                               hotkey-overlay-title="Wi-Fi" { spawn "~/.config/niri/scripts/menu-wifi.sh"; }
+    Mod+Shift+N                         hotkey-overlay-title="Bluetooth" { spawn "~/.config/niri/scripts/menu-bluetooth.sh"; }
     Mod+I                               hotkey-overlay-title="Display & Brightness Hub" { spawn "~/.config/niri/scripts/menu-display.sh"; }
     Mod+Shift+I                         hotkey-overlay-title="Audio & Sink Manager" { spawn "~/.config/niri/scripts/menu-audio.sh"; }
     Mod+M                               hotkey-overlay-title="Session Menu" { spawn "~/.config/niri/scripts/menu-session.sh"; }

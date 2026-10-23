@@ -1,72 +1,115 @@
 #!/usr/bin/env bash
+# Дисплеи (Mod+I): яркость ноутбука (brightnessctl) и внешнего монитора (ddcutil), питание экранов.
+# Меню открывается мгновенно: DDC/CI медленный (0.5–2 с), поэтому яркость HDMI берётся из кэша,
+# а актуальное значение подтягивается фоном для следующего открытия.
+# Выбор по индексу (fuzzel --index).
 
-make_bar() {
-    local val=${1:-0}
-    local total=10
-    local filled=$(( (val + 5) / 10 ))
-    [ "$filled" -gt 10 ] && filled=10
-    [ "$filled" -lt 0 ] && filled=0
-    local empty=$(( total - filled ))
-    printf "[%s%s] %3d%%" "$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))" "$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))" "$val"
+fz() { fuzzel --dmenu "$@"; }
+
+notify() { notify-send -h string:x-canonical-private-synchronous:display-hub "DISPLAY" "$1"; }
+notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:display-hub "DISPLAY ERROR" "$1"; }
+
+CACHE="${XDG_RUNTIME_DIR:-/tmp}/niri-ddc-brightness"
+
+bar() {
+    local v=${1:-0} f
+    f=$(( (v + 5) / 10 )); [ "$f" -gt 10 ] && f=10; [ "$f" -lt 0 ] && f=0
+    printf '%s%s' "$(printf '█%.0s' $(seq 1 "$f") 2>/dev/null)" "$(printf '░%.0s' $(seq 1 $((10 - f))) 2>/dev/null)"
 }
 
-# Считывание яркости ноутбука
-BR_INT=$(brightnessctl -m 2>/dev/null | awk -F, '{print sub(/%/, "", $4) ? $4 : $4}')
-BR_INT=${BR_INT:-0}
+clamp() { local v=$1; [ "$v" -lt "$2" ] && v=$2; [ "$v" -gt 100 ] && v=100; printf '%s' "$v"; }
 
-# Считывание яркости внешнего монитора через DDC/CI
-BR_EXT=$(ddcutil getvcp 10 --brief 2>/dev/null | awk '{print $4}')
-BR_EXT=${BR_EXT:-0}
+laptop_get() { brightnessctl -m 2>/dev/null | head -n 1 | cut -d, -f4 | tr -d '%'; }
 
-BAR_INT=$(make_bar "$BR_INT")
-BAR_EXT=$(make_bar "$BR_EXT")
+ext_read() { ddcutil getvcp 10 --brief 2>/dev/null | awk '{print $4}'; }
 
-MENU=$(cat << MENU_END
-1. Ноутбук:  $BAR_INT
-2. HDMI:     $BAR_EXT
-────────────────────────────────────────────
-3. HDMI:     Выключить питание экрана (Standby)
-4. HDMI:     Включить питание экрана (Power ON)
-5. Niri:     Обесточить все экраны (DPMS Off)
-MENU_END
-)
+ext_refresh_bg() {
+    ( v=$(ext_read); [ -n "$v" ] && echo "$v" >"$CACHE" ) >/dev/null 2>&1 &
+}
 
-CH=$(echo -e "$MENU" | fuzzel --dmenu --lines 6 --width 50 --prompt="DISPLAY CONTROL -> ")
-[ -z "$CH" ] && exit 0
+# Выбор уровня: пресеты + шаги. $1 — заголовок, $2 — текущее значение
+pick_level() {
+    local -a items=("+10" "-10" 100 90 80 70 60 50 40 30 20 10 5)
+    local idx
+    idx=$(printf '%s%%\n' "${items[@]}" | fz --index --lines 12 --width 24 --prompt "$1 ($2%) -> ") || return 1
+    [ -z "$idx" ] && return 1
+    printf '%s' "${items[idx]}"
+}
 
-case "$CH" in
-    1.*|*Ноутбук*)
-        ACT=$(printf "+10%%\n-10%%\n100%%\n75%%\n50%%\n25%%\n10%%" | fuzzel --dmenu --lines 7 --width 20 --prompt="Яркость ноутбука -> ")
-        [ -z "$ACT" ] && exit 0
-        if [[ "$ACT" =~ ^[+-] ]]; then
-            brightnessctl set "$ACT"
-        else
-            brightnessctl set "${ACT}%"
-        fi
-        notify-send "DISPLAY" "Яркость ноутбука: $(brightnessctl -m | awk -F, '{print $4}')"
-        ;;
-    2.*)
-        ACT=$(printf "+10\n-10\n100\n75\n50\n25\n10" | fuzzel --dmenu --lines 7 --width 20 --prompt="Яркость HDMI -> ")
-        [ -z "$ACT" ] && exit 0
-        if [[ "$ACT" =~ ^[+-] ]]; then
-            ddcutil setvcp 10 "$ACT" 2>/dev/null
-        else
-            ddcutil setvcp 10 "$ACT" 2>/dev/null
-        fi
-        NEW_V=$(ddcutil getvcp 10 --brief 2>/dev/null | awk '{print $4}')
-        notify-send "DISPLAY" "Яркость внешнего монитора: ${NEW_V:-$ACT}%"
-        ;;
-    3.*|*Standby*|*Выключить*)
-        # VCP D6 0x04: Power-off / DPM Standby
-        ddcutil setvcp D6 4 2>/dev/null
-        notify-send "DISPLAY" "Внешний HDMI монитор переведен в Standby"
-        ;;
-    4.*|*Power*ON*|*Включить*)
-        # VCP D6 0x01: DPM Normal On
-        ddcutil setvcp D6 1 2>/dev/null
-        notify-send "DISPLAY" "Внешний HDMI монитор включен"
-        ;;
-    5.*|*DPMS*|*Обесточить*)
-        niri msg action power-off-monitors
-        ;;
-esac
+set_laptop() {
+    local cur new
+    cur=$(laptop_get); cur=${cur:-0}
+    new=$(pick_level "Ноутбук" "$cur") || return 1
+    case "$new" in
+        +*|-*) new=$(clamp $(( cur + new )) 1) ;;
+    esac
+    brightnessctl set "${new}%" >/dev/null 2>&1 || { notify_err "Не удалось изменить яркость ноутбука"; return 1; }
+    notify "Яркость ноутбука: $(laptop_get)%"
+}
+
+set_ext() {
+    local cur new
+    cur=$(cat "$CACHE" 2>/dev/null); cur=${cur:-50}
+    new=$(pick_level "HDMI" "$cur") || return 1
+    case "$new" in
+        +*|-*)
+            # относительный шаг считаем от свежего значения
+            local fresh; fresh=$(ext_read); cur=${fresh:-$cur}
+            new=$(clamp $(( cur + new )) 0)
+            ;;
+    esac
+    notify "HDMI: установка яркости ${new}%..."
+    if ddcutil setvcp 10 "$new" --noverify >/dev/null 2>&1; then
+        echo "$new" >"$CACHE"
+        notify "Яркость HDMI: ${new}%"
+    else
+        notify_err "DDC/CI недоступен (монитор не отвечает)"
+        return 1
+    fi
+}
+
+while true; do
+    ext_refresh_bg
+
+    ROWS=() KIND=()
+    add() { ROWS+=("$1"); KIND+=("$2"); }
+
+    if LAP=$(laptop_get) && [ -n "$LAP" ]; then
+        add "$(bar "$LAP")  $(printf '%3d' "$LAP")%  Ноутбук" laptop
+    fi
+    EXT=$(cat "$CACHE" 2>/dev/null)
+    if [ -n "$EXT" ]; then
+        add "$(bar "$EXT")  $(printf '%3d' "$EXT")%  HDMI" ext
+    else
+        add "░░░░░░░░░░    —   HDMI" ext
+    fi
+    add "────────────────────────────────────────" none
+    add "⏻ HDMI: Standby (выключить питание)" ext_off
+    add "⏻ HDMI: Включить питание" ext_on
+    add "⏻ Все экраны: выключить (DPMS)" dpms
+
+    IDX=$(printf '%s\n' "${ROWS[@]}" |
+        fz --index --lines "${#ROWS[@]}" --width 50 --prompt "DISPLAY -> ") || exit 0
+    [ -z "$IDX" ] && exit 0
+
+    case "${KIND[IDX]}" in
+        laptop) set_laptop ;;   # после изменения возвращаемся в меню, Esc — выход
+        ext)    set_ext ;;
+        ext_off)
+            # VCP D6 0x04: DPM Standby
+            if ddcutil setvcp D6 4 --noverify >/dev/null 2>&1; then notify "HDMI монитор переведён в Standby"
+            else notify_err "DDC/CI недоступен"; fi
+            exit 0
+            ;;
+        ext_on)
+            # VCP D6 0x01: DPM Normal On
+            if ddcutil setvcp D6 1 --noverify >/dev/null 2>&1; then notify "HDMI монитор включён"
+            else notify_err "DDC/CI недоступен"; fi
+            exit 0
+            ;;
+        dpms)
+            niri msg action power-off-monitors
+            exit 0
+            ;;
+    esac
+done

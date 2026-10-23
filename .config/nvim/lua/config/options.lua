@@ -11,7 +11,7 @@ opt.ignorecase = true     -- Игнорировать регистр при по
 opt.smartcase = true      -- ...если не введены заглавные
 opt.termguicolors = true  -- Поддержка TrueColor
 opt.scrolloff = 8         -- Курсор всегда в центре экрана при скролле
-opt.updatetime = 50       -- Быстрая реакция интерфейса
+opt.updatetime = 250      -- 50 мс — это запись swap и CursorHold каждые 50 мс; 250 заметно легче
 
 -- Настройка отображения ошибок (диагностики)
 vim.diagnostic.config({
@@ -23,6 +23,7 @@ vim.diagnostic.config({
 })
 
 opt.laststatus = 3
+opt.signcolumn = "yes"   -- колонка знаков всегда видна: текст не прыгает при диагностике/git-знаках
 
 opt.clipboard = "unnamedplus"
 
@@ -34,7 +35,7 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 
 -- Маркер на 80 (или 100) символов, чтобы не писать длинные строки
-vim.opt.colorcolumn = "80"
+vim.opt.colorcolumn = "100"  -- совпадает с ColumnLimit в ~/.clang-format
 
 -- Отключение режима мыши (опционально, если хочешь чисто клавиатурный опыт)
 -- vim.opt.mouse = ""

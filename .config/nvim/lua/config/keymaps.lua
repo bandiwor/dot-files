@@ -15,5 +15,6 @@ map('n', '<Down>', '<nop>')
 map('n', '<Left>', '<nop>')
 map('n', '<Right>', '<nop>')
 
-map('n', 'n', 'nzzzn')
-map('n', 'N', 'Nzzzn')
+-- Поиск: центрируем экран и раскрываем сворачивание (было 'nzzzn' — лишний zn сбрасывал folds)
+map('n', 'n', 'nzzzv')
+map('n', 'N', 'Nzzzv')

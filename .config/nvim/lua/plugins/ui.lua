@@ -56,14 +56,20 @@ return {
         config = function()
             require("nvim-treesitter").install({
                 "c", "cpp", "lua", "bash", "markdown", "markdown_inline",
-                "toml", "python", "rust", "wgsl", "cmake", "html", "css"
+                "toml", "python", "rust", "wgsl", "cmake", "html", "css",
+                "javascript", "typescript", "tsx", "json", "jsonc", "yaml",
+                "vim", "vimdoc", "regex", "diff", "gitcommit"
             })
 
             vim.api.nvim_create_autocmd("FileType", {
                 group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
                 callback = function(event)
                     pcall(vim.treesitter.start, event.buf)
-                    vim.bo[event.buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
+                    -- Для C/C++ отступы считает cindent (см. init.lua + cinoptions), он согласован с clang-format
+                    local ft = vim.bo[event.buf].filetype
+                    if ft ~= "c" and ft ~= "cpp" then
+                        vim.bo[event.buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
+                    end
                 end,
             })
         end,

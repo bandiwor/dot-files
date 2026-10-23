@@ -1,3 +1,11 @@
+-- Серверы: одно место, откуда берутся и ensure_installed, и vim.lsp.enable
+local servers = {
+    "clangd", "rust_analyzer", "lua_ls", "wgsl_analyzer",
+    "basedpyright", "ruff",
+    "vtsls", "html", "cssls", "eslint", "emmet_language_server", "jsonls",
+    "bashls", "neocmake", "taplo", "marksman",
+}
+
 return {
     {
         "williamboman/mason.nvim",
@@ -7,20 +15,24 @@ return {
         "williamboman/mason-lspconfig.nvim",
         config = function()
             require("mason-lspconfig").setup({
-                -- ДОБАВЛЕНО: vtsls (JS/TS), html, cssls, eslint, emmet
-                ensure_installed = {
-                    "clangd", "lua_ls", "rust_analyzer",
-                    "vtsls", "html", "cssls", "eslint", "emmet_language_server", "jsonls",
-                    "basedpyright"
-                },
+                ensure_installed = servers,
+                automatic_enable = false, -- включаем явно ниже, из одного списка
             })
         end
+    },
+    {
+        -- Форматтеры для conform (раньше нигде не ставились: black/isort/stylua/clang-format не было)
+        "WhoIsSethDaniel/mason-tool-installer.nvim",
+        dependencies = { "williamboman/mason.nvim" },
+        opts = {
+            ensure_installed = { "stylua", "ruff", "clang-format", "biome", "prettier", "shfmt" },
+            run_on_start = true,
+        },
     },
     {
         "neovim/nvim-lspconfig",
         dependencies = { "p00f/clangd_extensions.nvim", "b0o/SchemaStore.nvim" },
         config = function()
-            -- ИЗМЕНЕНО: Теперь мы получаем capabilities от blink.cmp
             local capabilities = require('blink.cmp').get_lsp_capabilities()
 
             -- 1. Глобальная настройка для ВСЕХ языковых серверов
@@ -31,7 +43,10 @@ return {
 
             -- 2. Точечные настройки конкретных серверов
             vim.lsp.config("clangd", {
-                cmd = { "clangd", "--background-index", "--clang-tidy" },
+                cmd = {
+                    "clangd", "--background-index", "--clang-tidy",
+                    "--header-insertion=iwyu", "--completion-style=detailed",
+                },
                 init_options = {
                     usePlaceholders = true,
                     completeUnimported = true,
@@ -53,7 +68,44 @@ return {
                 },
             })
 
-            -- ДОБАВЛЕНО: Настройка для Emmet (чтобы он работал в нужных файлах)
+            -- Без этого lua_ls ругается "Undefined global 'vim'" в самом конфиге nvim
+            vim.lsp.config("lua_ls", {
+                settings = {
+                    Lua = {
+                        runtime = { version = "LuaJIT" },
+                        diagnostics = { globals = { "vim" } },
+                        workspace = {
+                            library = { vim.env.VIMRUNTIME },
+                            checkThirdParty = false,
+                        },
+                        telemetry = { enable = false },
+                    },
+                },
+            })
+
+            -- Python: "standard" вместо "recommended" (в basedpyright по умолчанию очень шумный),
+            -- интерпретатор берётся из .venv проекта, если он есть
+            vim.lsp.config("basedpyright", {
+                settings = {
+                    basedpyright = {
+                        analysis = {
+                            typeCheckingMode = "standard",
+                            autoImportCompletions = true,
+                            diagnosticMode = "openFilesOnly",
+                            inlayHints = { callArgumentNames = true },
+                        },
+                    },
+                },
+                before_init = function(_, config)
+                    local venv_python = (config.root_dir or "") .. "/.venv/bin/python"
+                    if vim.uv.fs_stat(venv_python) then
+                        config.settings = config.settings or {}
+                        config.settings.python = vim.tbl_extend("force", config.settings.python or {},
+                            { pythonPath = venv_python })
+                    end
+                end,
+            })
+
             vim.lsp.config("emmet_language_server", {
                 filetypes = { "css", "html", "javascript", "javascriptreact", "less", "sass", "scss", "pug", "typescriptreact" },
             })
@@ -78,25 +130,19 @@ return {
             })
 
             -- 3. Включаем серверы
-            vim.lsp.enable("clangd")
-            vim.lsp.enable("lua_ls")
-            vim.lsp.enable("wgsl_analyzer")
-            vim.lsp.enable("rust_analyzer")
-
-            -- ДОБАВЛЕНО: Включаем веб-серверы
-            vim.lsp.enable("vtsls")
-            vim.lsp.enable("html")
-            vim.lsp.enable("cssls")
-            vim.lsp.enable("eslint")
-            vim.lsp.enable("emmet_language_server")
-            vim.lsp.enable("jsonls")
+            vim.lsp.enable(servers)
 
             -- 4. Хоткеи при загрузке LSP
             vim.api.nvim_create_autocmd('LspAttach', {
                 desc = 'LSP actions',
                 callback = function(event)
                     local client = vim.lsp.get_client_by_id(event.data.client_id)
-                    local opts = { buffer = event.buf }
+                    local opts = function(desc) return { buffer = event.buf, desc = desc } end
+
+                    -- ruff только линтит/форматирует; hover отдаём basedpyright, чтобы не было дублей
+                    if client and client.name == "ruff" then
+                        client.server_capabilities.hoverProvider = false
+                    end
 
                     if client and client.server_capabilities.inlayHintProvider then
                         vim.lsp.inlay_hint.enable(false, { bufnr = event.buf })
@@ -107,8 +153,13 @@ return {
                         end, { buffer = event.buf, desc = "Toggle Inlay Hints" })
                     end
 
-                    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-                    vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+                    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts("Go to definition"))
+                    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts("Go to declaration"))
+                    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts("Go to implementation"))
+                    vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, opts("Go to type definition"))
+                    vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts("Code action"))
+                    vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts("Rename symbol"))
+                    vim.keymap.set('n', '<leader>cd', vim.diagnostic.open_float, opts("Line diagnostics"))
                 end,
             })
         end

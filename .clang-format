@@ -1,0 +1,13 @@
+# Глобальный стиль C/C++ (~/.clang-format). Проекты со своим .clang-format его переопределяют.
+# Используется и conform.nvim (форматирование при сохранении), и clangd.
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
+AccessModifierOffset: -4
+IndentCaseLabels: true
+NamespaceIndentation: None
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false

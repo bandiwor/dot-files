@@ -10,7 +10,7 @@ binds {
 
     // ─── Системные хабы и меню ───
     Mod+R                               hotkey-overlay-title="App Launcher: Fuzzel" { spawn "fuzzel"; }
-    Mod+T                               hotkey-overlay-title="HUD: Time / Battery / Wi-Fi / Volume" { spawn "~/.config/niri/scripts/hud.sh"; }
+    Mod+T                               hotkey-overlay-title="Toggle Clock HUD" { spawn "~/.config/niri/scripts/hud.sh"; }
     Mod+P                               hotkey-overlay-title="Power & Battery Profile" { spawn "~/.config/niri/scripts/menu-power.sh"; }
     Mod+N                               hotkey-overlay-title="Wireless Hub (Wi-Fi / BT)" { spawn "~/.config/niri/scripts/menu-wireless.sh"; }
     Mod+I                               hotkey-overlay-title="Display & Brightness Hub" { spawn "~/.config/niri/scripts/menu-display.sh"; }

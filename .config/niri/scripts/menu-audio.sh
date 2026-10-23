@@ -1,91 +1,112 @@
 #!/usr/bin/env bash
+# Аудио хаб (Mod+Shift+I): громкость/mute вывода и микрофона, выбор устройств.
+# Громкость и mute — wpctl; список и переключение устройств — pactl (pipewire-pulse),
+# имена устройств берутся из машинного вывода, а не из рамок `wpctl status`.
+# Выбор по индексу (fuzzel --index). После действия возвращаемся в меню, Esc — выход.
 
-make_bar() {
-    local val=${1:-0}
-    local total=10
-    local filled=$(( (val + 5) / 10 ))
-    [ "$filled" -gt 10 ] && filled=10
-    [ "$filled" -lt 0 ] && filled=0
-    local empty=$(( total - filled ))
-    printf "[%s%s] %3d%%" "$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))" "$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))" "$val"
+fz() { fuzzel --dmenu "$@"; }
+
+notify()     { notify-send -h string:x-canonical-private-synchronous:audio-hub "AUDIO" "$1"; }
+notify_err() { notify-send -u critical -h string:x-canonical-private-synchronous:audio-hub "AUDIO ERROR" "$1"; }
+
+SINK=@DEFAULT_AUDIO_SINK@
+SRC=@DEFAULT_AUDIO_SOURCE@
+
+bar() {
+    local v=${1:-0} f
+    f=$(( (v + 5) / 10 )); [ "$f" -gt 10 ] && f=10; [ "$f" -lt 0 ] && f=0
+    printf '%s%s' "$(printf '█%.0s' $(seq 1 "$f") 2>/dev/null)" "$(printf '░%.0s' $(seq 1 $((10 - f))) 2>/dev/null)"
 }
 
-# Считывание текущего статуса громкости и Mute
-VOL_RAW=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
-VOL=$(echo "$VOL_RAW" | awk '{print int($2 * 100)}')
-VOL=${VOL:-0}
-MUTED=$(echo "$VOL_RAW" | grep -q "MUTED" && echo "[MUTED]" || echo "[ON]")
+# vol_of TARGET → "процент muted(0/1)"
+vol_of() {
+    local raw
+    raw=$(wpctl get-volume "$1" 2>/dev/null) || { printf '0 0'; return; }
+    awk '{m = ($0 ~ /MUTED/) ? 1 : 0; printf "%d %d", $2 * 100 + 0.5, m}' <<<"$raw"
+}
 
-MIC_RAW=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null)
-MIC_MUTED=$(echo "$MIC_RAW" | grep -q "MUTED" && echo "[MUTED]" || echo "[ON]")
+# list_devices sinks|sources → строки "имя<TAB>описание"; мониторы и пустышки скрыты
+list_devices() {
+    LC_ALL=C pactl list "$1" 2>/dev/null | awk -F'\t' '
+        /^\tName: /        { name = substr($2, 7) }
+        /^\tDescription: / { desc = substr($2, 14);
+                             if (name !~ /\.monitor$/ && name !~ /auto_null/) print name "\t" desc }'
+}
 
-BAR_VOL=$(make_bar "$VOL")
+pick_level() {
+    local -a items=("+5" "-5" "+10" "-10" 100 80 60 40 20 0)
+    local idx
+    idx=$(printf '%s%%\n' "${items[@]}" | fz --index --lines 10 --width 24 --prompt "$1 ($2%) -> ") || return 1
+    [ -z "$idx" ] && return 1
+    printf '%s' "${items[idx]}"
+}
 
-# Сборка списка выходов звука (Sinks)
-SINKS_LIST=$(wpctl status 2>/dev/null | awk '
-/Audio/,/Video/ {
-    if ($0 ~ /Sinks:/) { in_sinks=1; next }
-    if ($0 ~ /Sources:/) { in_sinks=0; next }
-    if (in_sinks && $0 ~ /^[│ ]*[ *]*[0-9]+\./) {
-        line = $0
-        sub(/^[│ ]*/, "", line)
-        is_active = (line ~ /^\*/) ? 1 : 0
-        sub(/^\*?[ ]*/, "", line)
-        id = line
-        sub(/\..*/, "", id)
-        name = line
-        sub(/^[0-9]+\.[ ]*/, "", name)
-        sub(/\[vol:.*$/, "", name)
-        gsub(/[ \t]+$/, "", name)
+set_level() {
+    local target=$1 label=$2 cur=$3 new
+    new=$(pick_level "$label" "$cur") || return 1
+    case "$new" in
+        +*|-*) wpctl set-volume -l 1.5 "$target" "${new:1}%${new:0:1}" 2>/dev/null ;;
+        *)     wpctl set-volume -l 1.0 "$target" "$new%" 2>/dev/null ;;
+    esac
+}
 
-        if (name ~ /Dummy/ || name == "") next
+while true; do
+    read -r SV SM <<<"$(vol_of "$SINK")"
+    read -r MV MM <<<"$(vol_of "$SRC")"
 
-        mark = is_active ? "[x]" : "[ ]"
-        printf "%s %-4s │ %s\n", mark, id, name
-    }
-}')
+    mapfile -t SINKS < <(list_devices sinks)
+    mapfile -t SOURCES < <(list_devices sources)
+    DEF_SINK=$(pactl get-default-sink 2>/dev/null)
+    DEF_SRC=$(pactl get-default-source 2>/dev/null)
 
-MENU=$(cat << MENU_END
-1. Громкость: $BAR_VOL $MUTED
-2. Вывод звука: Переключить устройство (Sink)
-3. Звук:      Mute / Unmute вывода
-4. Микрофон:  Mute / Unmute входа $MIC_MUTED
-MENU_END
-)
+    sink_desc=""; src_desc=""
+    for d in "${SINKS[@]}";   do [ "${d%%$'\t'*}" = "$DEF_SINK" ] && sink_desc=${d#*$'\t'}; done
+    for d in "${SOURCES[@]}"; do [ "${d%%$'\t'*}" = "$DEF_SRC" ]  && src_desc=${d#*$'\t'};  done
 
-CH=$(echo -e "$MENU" | fuzzel --dmenu --lines 5 --width 54 --prompt="AUDIO CONTROL -> ")
-[ -z "$CH" ] && exit 0
+    ROWS=() KIND=() ARG=()
+    add() { ROWS+=("$1"); KIND+=("$2"); ARG+=("${3:-}"); }
 
-case "$CH" in
-    1*|*Громкость*)
-        ACT=$(printf "+5%%\n-5%%\n+10%%\n-10%%\n100%%\n80%%\n50%%\n25%%\n0%%" | fuzzel --dmenu --lines 9 --width 20 --prompt="Громкость -> ")
-        [ -z "$ACT" ] && exit 0
-        if [[ "$ACT" =~ ^[+-] ]]; then
-            wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ "$ACT"
-        else
-            wpctl set-volume @DEFAULT_AUDIO_SINK@ "$ACT"
-        fi
-        CURR_V=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2 * 100)}')
-        notify-send "AUDIO" "Громкость: ${CURR_V}%"
-        ;;
-    2*|*Вывод*)
-        SINK_CH=$(echo -e "$SINKS_LIST" | fuzzel --dmenu --lines 6 --width 64 --prompt="ВЫБОР ВЫХОДА ЗВУКА -> ")
-        [ -z "$SINK_CH" ] && exit 0
-        TARGET_ID=$(echo "$SINK_CH" | awk '{print $2}')
-        if [ -n "$TARGET_ID" ]; then
-            wpctl set-default "$TARGET_ID"
-            SINK_NAME=$(echo "$SINK_CH" | cut -d'│' -f2 | xargs)
-            notify-send "AUDIO DEVICE" "Вывод звука переключен на:\n$SINK_NAME"
-        fi
-        ;;
-    3*|*вывода*)
-        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
-        NEW_ST=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q "MUTED" && echo "Выключен [MUTE]" || echo "Включен [UNMUTE]")
-        notify-send "AUDIO" "Звук: $NEW_ST"
-        ;;
-    4*|*Микрофон*)
-        wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
-        NEW_MIC=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep -q "MUTED" && echo "Заглушен [MUTE]" || echo "Активен [UNMUTE]")
-        notify-send "MICROPHONE" "Микрофон: $NEW_MIC"
-        ;;
-esac
+    mute_tag() { [ "$1" = "1" ] && printf '  [MUTED]'; }
+
+    add "$(bar "$SV")  $(printf '%3d' "$SV")%  OUT  ${sink_desc:-—}$(mute_tag "$SM")" sink_vol
+    add "⏻ $([ "$SM" = 1 ] && echo 'Включить звук' || echo 'Выключить звук')" sink_mute
+    add "$(bar "$MV")  $(printf '%3d' "$MV")%  IN   ${src_desc:-—}$(mute_tag "$MM")" src_vol
+    add "⏻ $([ "$MM" = 1 ] && echo 'Включить микрофон' || echo 'Выключить микрофон')" src_mute
+
+    add "──────────────── ВЫХОДЫ ─────────────────" none
+    for i in "${!SINKS[@]}"; do
+        n=${SINKS[i]%%$'\t'*}; d=${SINKS[i]#*$'\t'}
+        add "$([ "$n" = "$DEF_SINK" ] && echo '●' || echo '○') $d" set_sink "$n|$d"
+    done
+    add "──────────────── ВХОДЫ ──────────────────" none
+    for i in "${!SOURCES[@]}"; do
+        n=${SOURCES[i]%%$'\t'*}; d=${SOURCES[i]#*$'\t'}
+        add "$([ "$n" = "$DEF_SRC" ] && echo '●' || echo '○') $d" set_src "$n|$d"
+    done
+
+    VISIBLE=${#ROWS[@]}; [ "$VISIBLE" -gt 14 ] && VISIBLE=14
+    IDX=$(printf '%s\n' "${ROWS[@]}" |
+        fz --index --lines "$VISIBLE" --width 66 --prompt "AUDIO -> ") || exit 0
+    [ -z "$IDX" ] && exit 0
+
+    case "${KIND[IDX]}" in
+        sink_vol)  set_level "$SINK" "Громкость" "$SV" ;;
+        src_vol)   set_level "$SRC" "Микрофон" "$MV" ;;
+        sink_mute) wpctl set-mute "$SINK" toggle ;;
+        src_mute)  wpctl set-mute "$SRC" toggle ;;
+        set_sink)
+            if pactl set-default-sink "${ARG[IDX]%%|*}" 2>/dev/null; then
+                notify "Вывод: ${ARG[IDX]#*|}"
+            else
+                notify_err "Не удалось переключить вывод"
+            fi
+            ;;
+        set_src)
+            if pactl set-default-source "${ARG[IDX]%%|*}" 2>/dev/null; then
+                notify "Вход: ${ARG[IDX]#*|}"
+            else
+                notify_err "Не удалось переключить вход"
+            fi
+            ;;
+    esac
+done

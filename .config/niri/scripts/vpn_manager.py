@@ -8,12 +8,25 @@ import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 import base64
+import os
 
 # --- НАСТРОЙКИ ---
-SUB_URL = "https://sub.white-dev.pro/LywXmvkM7n5xAZL2"
 CONFIG_PATH = "/etc/sing-box/config.json"
-GUI_APP = "wofi"
+SUB_URL_FILE = os.path.expanduser("~/.config/vpn_manager/sub_url")  # вне репозитория, права 600
 # -----------------
+
+
+def load_sub_url():
+    """Ссылка-подписка содержит токен: берём из $VPN_SUB_URL или из SUB_URL_FILE, не из кода."""
+    url = os.environ.get("VPN_SUB_URL", "").strip()
+    if not url and os.path.exists(SUB_URL_FILE):
+        with open(SUB_URL_FILE) as f:
+            url = f.read().strip()
+    if not url:
+        subprocess.run(["notify-send", "-u", "critical", "VPN Error",
+                        f"Нет ссылки подписки: положи её в {SUB_URL_FILE} или задай VPN_SUB_URL"])
+        sys.exit(1)
+    return url
 
 def parse_vless(url):
     parsed = urllib.parse.urlparse(url)
@@ -130,7 +143,7 @@ def main():
     
     try:
         # Используем requests для получения данных
-        response = requests.get(SUB_URL, headers=headers, timeout=10)
+        response = requests.get(load_sub_url(), headers=headers, timeout=10)
         response.raise_for_status() # Выкинет исключение при 4xx/5xx ошибках
 
         data = decode_data(response.text)
@@ -153,11 +166,11 @@ def main():
         status = f"{int(ms)}ms" if ms != float('inf') else "DEAD"
         menu_items.append(f"{i} | {status} | {p['tag']}")
 
-    wofi_input = "\n".join(menu_items).encode('utf-8')
-    wofi_cmd = ["wofi", "--dmenu", "--prompt", "Select VPN", "--lines", "15"]
-    
+    menu_input = "\n".join(menu_items).encode('utf-8')
+    menu_cmd = ["fuzzel", "--dmenu", "--prompt", "VPN -> ", "--lines", "15", "--width", "60"]
+
     try:
-        proc = subprocess.run(wofi_cmd, input=wofi_input, capture_output=True, check=True)
+        proc = subprocess.run(menu_cmd, input=menu_input, capture_output=True, check=True)
         choice_str = proc.stdout.decode('utf-8').strip()
         if not choice_str:
             sys.exit(0)

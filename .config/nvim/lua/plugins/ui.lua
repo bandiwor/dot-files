@@ -186,6 +186,8 @@ return {
         },
         opts = {
             lsp = {
+                -- Прогресс LSP ("✓ basedpyright" на каждый переанализ) только спамит уведомлениями
+                progress = { enabled = false },
                 -- Подменяет стандартные обработчики lsp (hover, signature help) на красивые окна
                 override = {
                     ["vim.lsp.util.convert_input_to_markdown_lines"] = true,

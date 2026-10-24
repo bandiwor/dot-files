@@ -46,7 +46,7 @@ return {
                     rust = { "rustfmt", lsp_format = "fallback" },
 
                     -- ruff: сортировка импортов + форматирование (замена isort + black, на порядок быстрее)
-                    python = { "ruff_organize_imports", "ruff_format" },
+                    python = { "ruff_organize_imports", "ruff_format", lsp_format = "fallback" },
 
                     -- Biome работает, когда в проекте есть biome.json; иначе — форматирование от LSP
                     javascript = { "biome", lsp_format = "fallback" },

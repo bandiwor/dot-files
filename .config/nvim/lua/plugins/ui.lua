@@ -1,52 +1,97 @@
 return {
     {
-        "catppuccin/nvim",
-        name = "catppuccin",
+        "rebelot/kanagawa.nvim",
         lazy = false,
         priority = 1000,
         opts = {
-            flavour = "mocha",
-            term_colors = true,
-            transparent_background = false,
-            styles = {
-                comments = { "italic" },
-                keywords = { "italic" },
-                functions = { "bold" },
+            compile = false,
+            undercurl = true,
+            commentStyle = { italic = true },
+            functionStyle = { bold = false },
+            keywordStyle = { italic = false },
+            statementStyle = { bold = false },
+            typeStyle = {},
+            transparent = false,
+            dimInactive = false,
+            terminalColors = true,
+            theme = "dragon",
+            background = {
+                dark = "dragon",
+                light = "lotus",
             },
-            color_overrides = {
-                mocha = {
-                    -- Глубокий графитовый фон (темнее, без явной синевы)
-                    base = "#111317",   -- Основной фон редактора
-                    mantle = "#0D0F12", -- Сайдбары (NvimTree) и плавающие окна
-                    crust = "#090A0C",  -- Статусбар и самые темные элементы
-
-                    -- Нейтральный текст (высокая читаемость, без пересвета)
-                    text = "#D0D4D8",     -- Основной код
-                    subtext1 = "#8A9199", -- Комментарии и неактивные элементы
-
-                    -- Выразительные, но мягкие акценты (не блеклые)
-                    red = "#E06C75",    -- Чистый красный (ошибки, теги)
-                    peach = "#E59B70",  -- Приятный оранжево-персиковый (числа, константы)
-                    yellow = "#D1B671", -- Теплый золотистый (типы, классы)
-                    green = "#8FCA9A",  -- Свежий мятно-зеленый (строки)
-                    teal = "#71C4C7",   -- Ясный бирюзовый (регулярки, escape-символы)
-                    blue = "#7AADE3",   -- Небесно-голубой (функции, методы)
-                    mauve = "#B690E6",  -- Красивый фиолетовый (ключевые слова, операторы)
+            colors = {
+                theme = {
+                    dragon = {
+                        ui = {
+                            bg = "#0a0a0a",
+                            bg_gutter = "#0a0a0a",
+                        },
+                    },
                 },
             },
-            integrations = {
-                cmp = true,
-                gitsigns = true,
-                nvimtree = true,
-                treesitter = true,
-                notify = true,
-                telescope = { enabled = true },
-                indent_blankline = { enabled = true },
-            },
+            overrides = function(colors)
+                return {
+                    -- Бесшовный фон и поля
+                    Normal = { bg = "#0a0a0a" },
+                    NormalNC = { bg = "#0a0a0a" },
+                    SignColumn = { bg = "#0a0a0a" },
+                    EndOfBuffer = { fg = "#0a0a0a" },
+                    LineNr = { fg = "#3a4048", bg = "#0a0a0a" },
+                    CursorLine = { bg = "#141416" },
+                    CursorLineNr = { fg = "#ffffff", bold = true, bg = "#0a0a0a" },
+
+                    -- ─── ИСПРАВЛЕНИЕ СИНЕВЫ В BLINK.CMP ───
+                    BlinkCmpMenu = { bg = "#0a0a0a", fg = "#d4d8dc" },
+                    BlinkCmpMenuBorder = { fg = "#333333", bg = "#0a0a0a" },
+                    BlinkCmpMenuSelection = { bg = "#1e2127", fg = "#ffffff", bold = true },
+                    BlinkCmpLabel = { fg = "#d4d8dc" },
+                    BlinkCmpLabelMatch = { fg = "#ffffff", bold = true },
+                    -- Убираем синий фон у параметров функций и описаний типов:
+                    BlinkCmpLabelDetail = { fg = "#6c747d", bg = "NONE" },
+                    BlinkCmpLabelDescription = { fg = "#6c747d", bg = "NONE" },
+                    BlinkCmpKind = { fg = "#8a9199", bg = "NONE" },
+                    BlinkCmpSource = { fg = "#444444", bg = "NONE" },
+                    BlinkCmpGhostText = { fg = "#444444", bg = "NONE" },
+                    BlinkCmpDoc = { bg = "#0a0a0a", fg = "#d4d8dc" },
+                    BlinkCmpDocBorder = { fg = "#333333", bg = "#0a0a0a" },
+                    BlinkCmpSignatureHelp = { bg = "#0a0a0a", fg = "#d4d8dc" },
+                    BlinkCmpSignatureHelpBorder = { fg = "#333333", bg = "#0a0a0a" },
+                    BlinkCmpSignatureHelpActiveParameter = { fg = "#ffffff", bold = true, underline = true, bg = "NONE" },
+
+                    -- ─── МЯГКАЯ ДИАГНОСТИКА (ПЕПЕЛЬНО-КИРПИЧНЫЙ ВМЕСТО ЯДОВИТО-КРАСНОГО) ───
+                    DiagnosticError = { fg = "#a65454" },
+                    DiagnosticSignError = { fg = "#a65454", bg = "#0a0a0a" },
+                    -- Текст ошибки в конце строки становится приглушенным и не бьет по глазам:
+                    DiagnosticVirtualTextError = { fg = "#6b3b3b", bg = "NONE", italic = true },
+                    DiagnosticUnderlineError = { sp = "#a65454", underline = true },
+                    DiagnosticFloatingError = { fg = "#a65454" },
+
+                    -- Предупреждения (сухой песочный оттенок)
+                    DiagnosticWarn = { fg = "#8a7a50" },
+                    DiagnosticSignWarn = { fg = "#8a7a50", bg = "#0a0a0a" },
+                    DiagnosticVirtualTextWarn = { fg = "#5a5036", bg = "NONE" },
+                    DiagnosticUnderlineWarn = { sp = "#8a7a50", underline = true },
+
+                    -- Инфо и хинты (приглушенный сланец)
+                    DiagnosticInfo = { fg = "#5c6a72" },
+                    DiagnosticSignInfo = { fg = "#5c6a72", bg = "#0a0a0a" },
+                    DiagnosticVirtualTextInfo = { fg = "#3e474d", bg = "NONE" },
+                    DiagnosticHint = { fg = "#5c6a72" },
+                    DiagnosticSignHint = { fg = "#5c6a72", bg = "#0a0a0a" },
+                    DiagnosticVirtualTextHint = { fg = "#3e474d", bg = "NONE" },
+
+                    TreesitterContext = { bg = "#0e0e10" },
+                    TreesitterContextLineNumber = { fg = "#3a4048", bg = "#0e0e10" },
+                    TreesitterContextBottom = { sp = "#333333", underline = true },
+
+                    FloatBorder = { fg = "#333333", bg = "#0a0a0a" },
+                    NormalFloat = { bg = "#0a0a0a" },
+                }
+            end,
         },
         config = function(_, opts)
-            require("catppuccin").setup(opts)
-            vim.cmd.colorscheme("catppuccin")
+            require("kanagawa").setup(opts)
+            vim.cmd.colorscheme("kanagawa-dragon")
         end,
     },
     {

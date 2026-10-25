@@ -25,7 +25,8 @@ return {
         "WhoIsSethDaniel/mason-tool-installer.nvim",
         dependencies = { "williamboman/mason.nvim" },
         opts = {
-            ensure_installed = { "stylua", "ruff", "clang-format", "biome", "prettier", "shfmt" },
+            -- clang-format не ставим через Mason (pip-сборка падает): он идёт с пакетом clang (pacman -S clang)
+            ensure_installed = { "stylua", "ruff", "biome", "prettier", "shfmt" },
             run_on_start = true,
         },
     },

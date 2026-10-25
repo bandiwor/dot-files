@@ -28,6 +28,7 @@ export MOZ_ENABLE_WAYLAND=1
 export EDITOR=nvim
 export VISUAL=nvim
 export PATH="$PATH:/home/kira/.local/bin"
+export PATH="$HOME/.cargo/bin:$PATH"
 
 export BAT_THEME="Catppuccin Macchiato"
 

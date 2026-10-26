@@ -109,10 +109,12 @@ return {
             vim.api.nvim_create_autocmd("FileType", {
                 group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
                 callback = function(event)
-                    pcall(vim.treesitter.start, event.buf)
+                    -- Отступы treesitter ставим только если для языка есть парсер: иначе (например, neon)
+                    -- мы затёрли бы родной indentexpr языка (GetNeonIndent) и Enter перестал бы делать отступ
+                    local started = pcall(vim.treesitter.start, event.buf)
                     -- Для C/C++ отступы считает cindent (см. init.lua + cinoptions), он согласован с clang-format
                     local ft = vim.bo[event.buf].filetype
-                    if ft ~= "c" and ft ~= "cpp" then
+                    if started and ft ~= "c" and ft ~= "cpp" then
                         vim.bo[event.buf].indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
                     end
                 end,

@@ -59,8 +59,11 @@ return {
                     css = { "prettier" },
                     html = { "prettier" },
                     sh = { "shfmt" },
+                    neon = { "neon_fmt" },
                 },
                 formatters = {
+                    -- форматтер языка Neon (из README neon.nvim); файлы с синтаксическими ошибками он не трогает
+                    neon_fmt = { command = "neon", args = { "fmt", "-" }, stdin = true },
                     ["clang-format"] = {
                         args = function(_, ctx)
                             local args = { "-assume-filename", ctx.filename }

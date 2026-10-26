@@ -177,9 +177,12 @@ return {
             keymap = {
                 preset = 'default',
                 ['<CR>'] = { 'accept', 'fallback' },
-                -- Листание меню автокомплита: Ctrl+j / Ctrl+k (стрелки не используются)
+                -- Листание меню автокомплита: Ctrl+j / Ctrl+k. Стрелки в preset 'default' тоже листают меню —
+                -- отключаем: 'fallback' = обычное поведение клавиши (движение курсора)
                 ['<C-j>'] = { 'select_next', 'fallback' },
                 ['<C-k>'] = { 'select_prev', 'fallback' },
+                ['<Up>'] = { 'fallback' },
+                ['<Down>'] = { 'fallback' },
             },
 
             appearance = {

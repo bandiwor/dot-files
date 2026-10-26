@@ -30,6 +30,20 @@ export VISUAL=nvim
 export PATH="$PATH:/home/kira/.local/bin"
 export PATH="$HOME/.cargo/bin:$PATH"
 
+# --- Прокси (локальный клиент: HTTP 10809, SOCKS5 10808) ---
+# proxy_off / proxy_on — выключить/включить в текущей оболочке (например, если клиент прокси не запущен)
+proxy_on() {
+    export http_proxy="http://127.0.0.1:10809"
+    export https_proxy="$http_proxy"
+    export all_proxy="socks5://127.0.0.1:10808"
+    export no_proxy="localhost,127.0.0.1,::1,.local"
+    export HTTP_PROXY="$http_proxy" HTTPS_PROXY="$https_proxy" ALL_PROXY="$all_proxy" NO_PROXY="$no_proxy"
+}
+proxy_off() {
+    unset http_proxy https_proxy all_proxy no_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY
+}
+proxy_on
+
 export BAT_THEME="Catppuccin Macchiato"
 
 export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --exclude .git'

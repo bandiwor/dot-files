@@ -177,8 +177,9 @@ return {
             keymap = {
                 preset = 'default',
                 ['<CR>'] = { 'accept', 'fallback' },
-                ['<Up>'] = { 'select_prev', 'fallback' },
-                ['<Down>'] = { 'select_next', 'fallback' },
+                -- Листание меню автокомплита: Ctrl+j / Ctrl+k (стрелки не используются)
+                ['<C-j>'] = { 'select_next', 'fallback' },
+                ['<C-k>'] = { 'select_prev', 'fallback' },
             },
 
             appearance = {

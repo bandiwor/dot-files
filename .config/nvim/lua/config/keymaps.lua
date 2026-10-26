@@ -16,6 +16,12 @@ map('n', '<C-Down>', '<C-w>j', { desc = 'Window down' })
 map('n', '<C-Up>', '<C-w>k', { desc = 'Window up' })
 map('n', '<C-Right>', '<C-w>l', { desc = 'Window right' })
 
+-- То же на Ctrl + h/j/k/l
+map('n', '<C-h>', '<C-w>h', { desc = 'Window left' })
+map('n', '<C-j>', '<C-w>j', { desc = 'Window down' })
+map('n', '<C-k>', '<C-w>k', { desc = 'Window up' })
+map('n', '<C-l>', '<C-w>l', { desc = 'Window right' })
+
 map('n', '<Up>', '<nop>')
 map('n', '<Down>', '<nop>')
 map('n', '<Left>', '<nop>')
